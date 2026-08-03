@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Generator</title>
+    <!-- html2canvas library for taking the screenshot -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap');
+
+        /* === MOBILE APP UI STYLES === */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #121212;
+            color: white;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .controls {
+            width: 100%;
+            max-width: 400px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .controls input[type="text"], .controls select, .controls textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 6px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .toggle-row input[type="checkbox"] {
+            transform: scale(1.5);
+            margin-right: 10px;
+        }
+        .controls button {
+            width: 100%;
+            padding: 15px;
+            background: #00ff66;
+            color: black;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .card-wrapper {
+            transform: scale(0.42);
+            transform-origin: top center;
+            height: 480px; 
+        }
+
+        /* === YOUR EXACT CARD CSS MERGED === */
+        .card {
+            width: 825px;
+            height: 1125px;
+            padding: 25px;
+            font-size: 40px;
+            color: #000000;
+            border: 6px solid transparent;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            font-family: "Montserrat", sans-serif;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
+            background: linear-gradient(white, white) padding-box, 
+            linear-gradient(135deg, #ffffff, #c9c9c9) border-box;
+        }
+
+        .card-bg {
+            content: "";
+            position: absolute;
+            top: -100%; left: -100%; right: -100%; bottom: -100%;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            filter: blur(35px) saturate(1.4) brightness(0.75);
+            transform: rotate(calc(var(--seed, 1) * 47deg));
+            transform-origin: center;
+            backface-visibility: hidden; 
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 2000 2000' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.002' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: cover;
+            mix-blend-mode: overlay; 
+            opacity: 1;
+            filter: contrast(150%) brightness(120%);
+        }
+
+        .header {
+            background: linear-gradient(to bottom, rgba(30,30,30,0.85), rgba(10,10,10,0.95));
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: #FFFFFF;
+            padding: 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            box-shadow: inset 0px 2px 4px rgba(255,255,255,0.2);
+        }
+
+        .card-title {
+            font-family: "Pusab", "Arial Black", sans-serif;
+            font-size: 60px;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+            text-wrap: nowrap;
+            align-content: center;
+        }
+
+        .card-creator {
+            font-family: "Montserrat", sans-serif;
+            font-size: 32px;
+            font-weight: 500;
+            margin-top: -2px;
+            text-wrap: nowrap;
+            align-content: center;
+        }
+
+        .art {
+            height: 600px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 4px solid #FFFFFF;
+            box-shadow: 0px 6px 15px rgba(0,0,0,0.6);
+            flex: 1;
+        }
+
+        .art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.15);
+        }
+
+        .description-box {
+            background: linear-gradient(to bottom, rgba(15,15,15,0.85), rgba(25,25,25,0.9));
+            backdrop-filter: brightness(1.2) blur(3px);
+            -webkit-backdrop-filter: brightness(1.2) blur(3px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            padding: 18px 25px 15px 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0px 4px 10px rgba(0,0,0,0.6);
+        }
+
+        .description-text {
+            font-family: "Montserrat", sans-serif;
+            color: #FFFFFF;
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
+            font-size: 40px;
+            padding: 8px;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .card-footer-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 8px;
+            color: #dddddd;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Classes to toggle normal vs foil fonts/layouts */
+        .footer-normal { font-size: 28px; }
+        .footer-foil { font-size: 20px; display: none; }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-direction: row;
+        }
+
+        .rnbw {
+            background-image: linear-gradient(80deg in oklab, rgb(255, 100, 100), rgb(255, 217, 0), rgb(0, 255, 128), rgb(0, 191, 255), rgb(255, 0, 255));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-size: 28px;
+            font-weight: 1000;
+            filter: saturate(8) brightness(1);
+        }
+
+        .holo-foil {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 8;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            opacity: 1;
+            background: 
+                linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
+                linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
+                url("https://lh3.googleusercontent.com/d/1SO8wWRQTw2Ggaz9dgzTVPMgicVFncnCL");
+            background-size: 100% 100%, 100% 100%, cover;
+            background-blend-mode: normal, screen, normal;
+            filter: saturate(250%);
+            display: none; /* Hidden by default */
+        }
+
+        [class^="rarity-"] {
+            position: relative;
+            z-index: 1;
+            font-family: "Montserrat", sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        [class^="rarity-"]::before {
+            content: attr(data-text); 
+            position: absolute;
+            left: 0; top: 0; z-index: -1;
+            -webkit-text-stroke: 2px CurrentColor;
+            -webkit-filter: brightness(0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+        }
+
+        .rarity-common { color: #ffffff; }
+        .rarity-uncommon { color: #66ff66; }
+        .rarity-rare { color: #4488ff; }
+        .rarity-epic { color: #bf59ff; }
+        .rarity-legendary { color: #ffcc00; font-weight: bold; }
+        .rarity-mythic { color: #ff3333; font-weight: bold; }
+        .rarity-heavenly { color: #86fcb8; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- === MOBILE INPUT FORM === -->
+    <div class="controls">
+        <label>Level ID</label>
+        <input type="text" id="input-id" value="10101010" oninput="updateCard()">
+        
+        <label>Card Name</label>
+        <input type="text" id="input-name" value="RNBWCOMET" oninput="updateCard()">
+        
+        <label>Creator</label>
+        <input type="text" id="input-creator" value="JollySpider" oninput="updateCard()">
+        
+        <label>Description</label>
+        <textarea id="input-desc" rows="3" oninput="updateCard()">"Really Jolly, more rainbow-slop?"</textarea>
+        
+        <label>Rarity</label>
+        <select id="input-rarity" onchange="updateCard()">
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
+            <option value="rare">Rare</option>
+            <option value="epic">Epic</option>
+            <option value="legendary">Legendary</option>
+            <option value="mythic" selected>Mythic</option>
+            <option value="heavenly">Heavenly</option>
+        </select>
+
+        <!-- Toggle Switch -->
+        <div class="toggle-row">
+            <label for="input-foil">Enable Foil / RNBW Version</label>
+            <input type="checkbox" id="input-foil" onchange="updateCard()">
+        </div>
+
+        <button onclick="downloadCard()">Download Card PNG</button>
+    </div>
+
+    <!-- === THE CARD DOM === -->
+    <div class="card-wrapper">
+        <div class="card" id="trading-card">
+            <div class="card-bg" id="card-bg" style="background-image: url('https://levelthumbs.prevter.me/thumbnail/10101010'); --seed: 10101010;"></div>
+            
+            <div class="holo-foil" id="card-holo"></div>
+            
+            <div class="header">
+                <span class="card-title" id="card-name">RNBWCOMET</span>
+                <span class="card-creator" id="card-creator">By JollySpider</span>
+            </div>
+            
+            <div class="art">
+                <img src="https://levelthumbs.prevter.me/thumbnail/10101010" id="card-art" alt="Card Art" crossorigin="anonymous" />
+            </div>
+            
+            <div class="description-box">
+                <div class="description-text" id="card-desc">
+                    "Really Jolly, more rainbow-slop?"
+                </div>
+                
+                <!-- NORMAL FOOTER TEMPLATE -->
+                <div class="card-footer-line footer-normal" id="footer-normal">
+                    <span>Jolly's Level Cards</span>
+                    <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
+                </div>
+
+                <!-- FOIL FOOTER TEMPLATE -->
+                <div class="card-footer-line footer-foil" id="footer-foil">
+                    <span>JOLLY'S LEVEL CARDS</span>
+                    <div class="footer-right">
+                        <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
+                        <span>&</span>
+                        <span class="rnbw">RNBW</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === JAVASCRIPT ENGINE === -->
+    <script>
+        function updateCard() {
+            // Get values from inputs
+            const id = document.getElementById('input-id').value;
+            const name = document.getElementById('input-name').value;
+            const creator = document.getElementById('input-creator').value;
+            const desc = document.getElementById('input-desc').value;
+            const rarity = document.getElementById('input-rarity').value;
+            const isFoil = document.getElementById('input-foil').checked;
+
+            // Update Text
+            document.getElementById('card-name').innerText = name;
+            document.getElementById('card-creator').innerText = "By " + creator;
+            document.getElementById('card-desc').innerText = desc;
+            
+            // Apply proper rarity capitalization and CSS classes to both footers
+            const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            const raritySpans = document.querySelectorAll('.card-rarity');
+            raritySpans.forEach(span => {
+                span.className = "rarity-" + rarity + " card-rarity";
+                span.innerText = formattedRarity;
+                span.setAttribute('data-text', formattedRarity); 
+            });
+
+            // Update Images and Seed value
+            const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
+            const bgElement = document.getElementById('card-bg');
+            bgElement.style.backgroundImage = `url('${thumbUrl}')`;
+            bgElement.style.setProperty('--seed', id);
+            document.getElementById('card-art').src = thumbUrl;
+
+            // Toggle Foil vs Normal Styles
+            document.getElementById('card-holo').style.display = isFoil ? 'block' : 'none';
+            document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
+            document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
+        }
+
+        function downloadCard() {
+            const cardElement = document.getElementById('trading-card');
+            
+            html2canvas(cardElement, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: null 
+            }).then(canvas => {
+                const image = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = document.getElementById('input-name').value + '-card.png';
+                link.href = image;
+                link.click();
+            }).catch(err => {
+                alert("Download failed. If using Foil, ensure the holographic texture URL allows CORS (try moving it from Google Drive to Imgur).");
+            });
+        }
+    </script>
+</body>
+</html>
