@@ -603,37 +603,23 @@
                 document.getElementById('main-controls').style.display = 'none';
                 document.body.style.justifyContent = 'center';
 
-                // Add visual status text for the black screen
-                const statusText = document.createElement('h2');
-                statusText.style.color = '#00ff66';
-                statusText.style.position = 'absolute';
-                statusText.style.top = '20px';
-                statusText.style.fontFamily = '"Montserrat", sans-serif';
-                statusText.innerText = 'Automated Request Detected: Rendering Card...';
-                document.body.appendChild(statusText);
-
                 try {
                     const data = JSON.parse(jsonParam);
                     applyJsonData(data);
                     
                     setTimeout(() => {
                         downloadCard().then(() => {
-                            statusText.innerText = 'Download initiated! Tab will close in 2.5 seconds.';
-                            
                             // 2.5s buffer guarantees the download registers before tab death
                             setTimeout(() => {
                                 window.close();
                             }, 2500); 
 
                         }).catch(e => {
-                            statusText.innerText = 'Error rendering card.';
-                            statusText.style.color = '#ff4444';
+                            console.error("Error rendering card:", e);
                         });
                     }, 1000); 
                 } catch (e) {
                     console.error("Failed to parse automated URL JSON parameters:", e);
-                    statusText.innerText = 'JSON Parsing Error.';
-                    statusText.style.color = '#ff4444';
                 }
             }
         });
