@@ -1,0 +1,8 @@
+{
+  "name": "card-generator",
+  "version": "1.0.0",
+  "dependencies": {
+    "@sparticuz/chromium": "^121.0.0",
+    "puppeteer-core": "^21.6.0"
+  }
+}
