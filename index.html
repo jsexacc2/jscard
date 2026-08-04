@@ -69,7 +69,6 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            transition: 0.2s;
         }
         .card-wrapper {
             transform: scale(0.42);
@@ -83,7 +82,7 @@
             padding: 25px;
             font-size: 40px;
             color: #000000;
-            border: 6px solid transparent;
+            border: 6px solid #e0e0e0;
             border-radius: 20px;
             display: flex;
             flex-direction: column;
@@ -92,50 +91,20 @@
             z-index: 1;
             overflow: hidden;
             box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
-            background: linear-gradient(white, white) padding-box, 
-            linear-gradient(135deg, #ffffff, #c9c9c9) border-box;
+            background: #ffffff;
             box-sizing: border-box;
-        }
-
-        .card-bg {
-            content: "";
-            position: absolute;
-            top: -100%; left: -100%; right: -100%; bottom: -100%;
-            z-index: -2;
-            background-size: cover;
-            background-position: center;
-            filter: blur(35px) saturate(1.4) brightness(0.75);
-            transform: rotate(calc(var(--seed, 1) * 47deg));
-            transform-origin: center;
-            backface-visibility: hidden; 
-        }
-
-        .card::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 2000 2000' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.002' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-size: cover;
-            mix-blend-mode: overlay; 
-            opacity: 1;
-            filter: contrast(150%) brightness(120%);
         }
 
         .header {
             background: linear-gradient(to bottom, rgba(30,30,30,0.85), rgba(10,10,10,0.95));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
-            padding: 20px 20px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
-            box-shadow: inset 0px 2px 4px rgba(255,255,255,0.2);
         }
 
         .card-title {
@@ -161,34 +130,29 @@
             justify-content: center;
             align-items: center;
             border: 4px solid #FFFFFF;
-            box-shadow: 0px 6px 15px rgba(0,0,0,0.6);
             flex: 1;
+            background: #000;
         }
 
         .art img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform: scale(1.15);
         }
 
         .description-box {
             background: linear-gradient(to bottom, rgba(15,15,15,0.85), rgba(25,25,25,0.9));
-            backdrop-filter: brightness(1.2) blur(3px);
-            -webkit-backdrop-filter: brightness(1.2) blur(3px);
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
             padding: 18px 25px 15px 25px;
             display: flex;
             flex-direction: column;
-            box-shadow: inset 0px 4px 10px rgba(0,0,0,0.6);
         }
 
         .description-text {
             font-family: "Montserrat", sans-serif;
             color: #FFFFFF;
-            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
             font-size: 40px;
             padding: 8px;
             text-align: center;
@@ -218,14 +182,13 @@
         }
 
         .rnbw {
-            background-image: linear-gradient(80deg in oklab, rgb(255, 100, 100), rgb(255, 217, 0), rgb(0, 255, 128), rgb(0, 191, 255), rgb(255, 0, 255));
+            background-image: linear-gradient(80deg, rgb(255, 100, 100), rgb(255, 217, 0), rgb(0, 255, 128), rgb(0, 191, 255), rgb(255, 0, 255));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
             font-size: 28px;
             font-weight: 1000;
-            filter: saturate(8) brightness(1);
         }
 
         .holo-foil {
@@ -234,42 +197,22 @@
             z-index: 8;
             pointer-events: none;
             mix-blend-mode: overlay;
-            opacity: 1;
-            background: 
-                linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
-                linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
-                url("https://lh3.googleusercontent.com/d/1SO8wWRQTw2Ggaz9dgzTVPMgicVFncnCL");
-            background-size: 100% 100%, 100% 100%, cover;
-            background-blend-mode: normal, screen, normal;
-            filter: saturate(250%);
+            background: linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, transparent 50%);
             display: none; 
         }
 
         [class^="rarity-"] {
-            position: relative;
-            z-index: 1;
-            font-family: "Montserrat", sans-serif;
             font-weight: 700;
             font-size: 28px;
-            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
-        }
-
-        [class^="rarity-"]::before {
-            content: attr(data-text); 
-            position: absolute;
-            left: 0; top: 0; z-index: -1;
-            -webkit-text-stroke: 2px CurrentColor;
-            -webkit-filter: brightness(0.5);
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
         }
 
         .rarity-common { color: #ffffff; }
         .rarity-uncommon { color: #66ff66; }
         .rarity-rare { color: #4488ff; }
         .rarity-epic { color: #bf59ff; }
-        .rarity-legendary { color: #ffcc00; font-weight: bold; }
-        .rarity-mythic { color: #ff3333; font-weight: bold; }
-        .rarity-heavenly { color: #86fcb8; font-weight: bold; }
+        .rarity-legendary { color: #ffcc00; }
+        .rarity-mythic { color: #ff3333; }
+        .rarity-heavenly { color: #86fcb8; }
     </style>
 </head>
 <body>
@@ -299,7 +242,7 @@
         </select>
 
         <div class="toggle-row">
-            <label for="input-foil">Enable Foil / RNBW Version</label>
+            <label for="input-foil">Enable Foil Version</label>
             <input type="checkbox" id="input-foil" onchange="updateCard()">
         </div>
 
@@ -308,27 +251,29 @@
 
     <div class="card-wrapper">
         <div class="card" id="trading-card">
-            <div class="card-bg" id="card-bg" style="background-image: url('https://levelthumbs.prevter.me/thumbnail/10101010'); --seed: 10101010;"></div>
             <div class="holo-foil" id="card-holo"></div>
+            
             <div class="header">
                 <span class="card-title" id="card-name">RNBWCOMET</span>
                 <span class="card-creator" id="card-creator">By JollySpider</span>
             </div>
+            
             <div class="art">
-                <img src="https://levelthumbs.prevter.me/thumbnail/10101010" id="card-art" alt="Card Art" crossorigin="anonymous" />
+                <img src="https://levelthumbs.prevter.me/thumbnail/10101010" id="card-art" crossorigin="anonymous" />
             </div>
+            
             <div class="description-box">
                 <div class="description-text" id="card-desc">"Really Jolly, more rainbow-slop?"</div>
                 
                 <div class="card-footer-line footer-normal" id="footer-normal">
                     <span>Jolly's Level Cards</span>
-                    <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
+                    <span class="rarity-mythic card-rarity">Mythic</span>
                 </div>
 
                 <div class="card-footer-line footer-foil" id="footer-foil">
                     <span>JOLLY'S LEVEL CARDS</span>
                     <div class="footer-right">
-                        <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
+                        <span class="rarity-mythic card-rarity">Mythic</span>
                         <span>&</span>
                         <span class="rnbw">RNBW</span>
                     </div>
@@ -355,13 +300,9 @@
             raritySpans.forEach(span => {
                 span.className = "rarity-" + rarity + " card-rarity";
                 span.innerText = formattedRarity;
-                span.setAttribute('data-text', formattedRarity); 
             });
 
             const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
-            const bgElement = document.getElementById('card-bg');
-            bgElement.style.backgroundImage = `url('${thumbUrl}')`;
-            bgElement.style.setProperty('--seed', id);
             document.getElementById('card-art').src = thumbUrl;
 
             document.getElementById('card-holo').style.display = isFoil ? 'block' : 'none';
@@ -369,56 +310,98 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
 
-                async function downloadCard() {
-            const serverUrl = "/api/render";
-            const originalName = document.getElementById('input-name').value || 'card';
+        async function downloadCard() {
+            const name = document.getElementById('input-name').value || 'card';
             const btn = document.getElementById('dl-btn');
-            
-            btn.innerText = "Rendering in Cloud... (Wait a moment)";
-            btn.style.background = "#ffcc00";
+            const id = document.getElementById('input-id').value;
+            const title = document.getElementById('card-name').innerText;
+            const creator = document.getElementById('card-creator').innerText;
+            const desc = document.getElementById('card-desc').innerText;
+            const rarityText = document.querySelector('.card-rarity').innerText;
+            const isFoil = document.getElementById('input-foil').checked;
+
+            btn.innerText = "Generating PNG...";
             btn.disabled = true;
 
-            const baseUrl = window.location.href.split('?')[0]; 
-            const baseTag = `<base href="${baseUrl}">`;
+            await document.fonts.ready;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 825;
+            canvas.height = 1125;
+            const ctx = canvas.getContext('2d');
+
+            // 1. Draw Card Background Base
+            ctx.fillStyle = "#ffffff";
+            ctx.roundRect(0, 0, 825, 1125, 20);
+            ctx.fill();
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = "#e0e0e0";
+            ctx.stroke();
+
+            // 2. Load Thumbnail Image safely
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = `https://levelthumbs.prevter.me/thumbnail/${id}`;
             
-            const fullHtml = `<!DOCTYPE html><html><head>${baseTag}` + 
-                             document.head.innerHTML + 
-                             `</head><body>` + 
-                             document.querySelector('.card-wrapper').outerHTML + 
-                             `</body></html>`;
+            await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; // fallback if image fails
+            });
 
+            // Draw Art Box
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(25, 205, 775, 600);
             try {
-                const response = await fetch(serverUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ html: fullHtml })
-                });
+                ctx.drawImage(img, 25, 205, 775, 600);
+            } catch(e) {}
 
-                if (!response.ok) {
-                    // Try to extract the specific error message JSON sent from the server
-                    const errJson = await response.json().catch(() => ({}));
-                    throw new Error(errJson.error || `Server responded with status ${response.status}`);
-                }
+            // 3. Draw Header Box
+            ctx.fillStyle = "#1a1a1a";
+            ctx.fillRect(25, 25, 775, 170);
+            
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = "bold 55px 'Pusab', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(title, 412, 100);
 
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = originalName + '-card.png';
-                link.href = url;
-                link.click();
-                
-                btn.innerText = "Download Card PNG";
-                btn.style.background = "#00ff66";
-                btn.disabled = false;
+            ctx.font = "500 28px 'Montserrat', sans-serif";
+            ctx.fillText(creator, 412, 145);
 
-            } catch (err) {
-                alert("Rendering failed: " + err.message);
-                btn.innerText = "Download Card PNG";
-                btn.style.background = "#00ff66";
-                btn.disabled = false;
-            }
+            // 4. Draw Description Box
+            ctx.fillStyle = "#141414";
+            ctx.fillRect(25, 815, 775, 285);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = "italic 36px 'Montserrat', sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(desc, 412, 890);
+
+            // 5. Draw Footer Line
+            ctx.strokeStyle = "rgba(255,255,255,0.2)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(55, 980);
+            ctx.lineTo(770, 980);
+            ctx.stroke();
+
+            ctx.font = "700 26px 'Montserrat', sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillStyle = "#dddddd";
+            ctx.fillText(isFoil ? "JOLLY'S LEVEL CARDS" : "Jolly's Level Cards", 55, 1030);
+
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#ff3333";
+            ctx.fillText(rarityText, 770, 1030);
+
+            // Trigger direct download
+            const link = document.createElement('a');
+            link.download = name + '-card.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            btn.innerText = "Download Card PNG";
+            btn.disabled = false;
         }
-
     </script>
 </body>
 </html>
