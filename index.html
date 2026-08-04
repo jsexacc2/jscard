@@ -280,16 +280,17 @@
 
     <div class="controls">
         <label>Level ID</label>
-        <input type="text" id="input-id" value="10101010" oninput="updateCard()">
+        <input type="text" id="input-id" value="000000000" oninput="updateCard()">
         
         <label>Card Name</label>
-        <input type="text" id="input-name" value="RNBWCOMET" oninput="updateCard()">
+        <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
         
         <label>Creator</label>
-        <input type="text" id="input-creator" value="JollySpider" oninput="updateCard()">
+        <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
         
         <label>Description</label>
-        <textarea id="input-desc" rows="3" oninput="updateCard()">"Really Jolly, more rainbow-slop?"</textarea>
+        <textarea id="input-desc" rows="3" oninput="updateCard()">
+            CARDTEXT</textarea>
         
         <label>Rarity</label>
         <select id="input-rarity" onchange="updateCard()">
@@ -388,7 +389,7 @@
         htmlToImage.toPng(cardElement, { quality: 0.95, pixelRatio: 2 })
             .then(function (dataUrl) {
                 const link = document.createElement('a');
-                link.download = originalName + '-card.png';
+                link.download = originalName + '.png';
                 link.href = dataUrl;
                 link.click();
 
