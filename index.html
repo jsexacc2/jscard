@@ -383,7 +383,18 @@
             document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
+        
+function clearAllInputs() {
+            document.getElementById('input-id').value = '';
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-creator').value = '';
+            document.getElementById('input-desc').value = '';
+            document.getElementById('input-rarity').value = 'common';
+            document.getElementById('input-foil').checked = false;
+            updateCard();
+    }
 
+    
         function downloadCard() {
     const cardElement = document.getElementById('trading-card');
     const originalName = document.getElementById('input-name').value || 'card';
