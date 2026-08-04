@@ -69,7 +69,7 @@
         }
         .input-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 8px;
             align-items: stretch;
         }
@@ -91,27 +91,29 @@
             resize: vertical;
         }
         
-        /* New Single-Field Clear Button Styling */
-        .btn-clear-field {
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            width: 38px;
-            font-family: inherit;
-            font-weight: 900;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin: 0;
-            padding: 0;
-            transition: 0.15s ease;
+        /* Fixed small red square clear button */
+        .input-row .btn-clear-field {
+            background: #ff4444 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            width: 38px !important;
+            min-width: 38px !important;
+            height: auto !important;
+            font-family: inherit !important;
+            font-weight: 900 !important;
+            font-size: 16px !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transition: 0.15s ease !important;
         }
-        .btn-clear-field:hover {
-            background: #ff2222;
+        .input-row .btn-clear-field:hover {
+            background: #ff2222 !important;
         }
 
         .hide-box {
@@ -145,7 +147,9 @@
             transform: scale(1.5);
             margin-right: 10px;
         }
-        .controls button {
+
+        /* Restricted to direct children so it doesn't break small field buttons */
+        .controls > button {
             width: 100%;
             padding: 15px;
             background: #00ff66;
@@ -164,6 +168,7 @@
             padding: 12px !important;
             margin-top: 6px !important;
         }
+        
         .card-wrapper {
             transform: scale(0.42);
             transform-origin: top center;
@@ -503,12 +508,11 @@
             updateCard();
         }
 
-        // New function specifically for targeting single inputs
         function clearField(fieldId) {
             const field = document.getElementById(fieldId);
             if(field) {
                 if(field.tagName === 'SELECT') {
-                    field.value = 'common'; // Reverts to base rarity
+                    field.value = 'common'; 
                 } else {
                     field.value = '';
                 }
