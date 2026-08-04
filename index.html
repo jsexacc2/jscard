@@ -5,22 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
     
-    <!-- The robust html-to-image engine (replaces html2canvas) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
-    
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
     
     <style>
-        /* === LOCAL FONT IMPORT === */
         @font-face {
             font-family: 'Pusab';
             src: url('pusab.otf') format('opentype');
         }
 
-        /* === MOBILE APP UI STYLES === */
         body {
             font-family: 'Montserrat', sans-serif;
             background: #121212;
@@ -82,7 +76,6 @@
             height: 480px; 
         }
 
-        /* === CARD CSS === */
         .card {
             width: 825px;
             height: 1125px;
@@ -280,7 +273,6 @@
 </head>
 <body>
 
-    <!-- === MOBILE INPUT FORM === -->
     <div class="controls">
         <label>Level ID</label>
         <input type="text" id="input-id" value="10101010" oninput="updateCard()">
@@ -313,26 +305,19 @@
         <button onclick="downloadCard()">Download Card PNG</button>
     </div>
 
-    <!-- === THE CARD DOM === -->
     <div class="card-wrapper">
         <div class="card" id="trading-card">
             <div class="card-bg" id="card-bg" style="background-image: url('https://levelthumbs.prevter.me/thumbnail/10101010'); --seed: 10101010;"></div>
-            
             <div class="holo-foil" id="card-holo"></div>
-            
             <div class="header">
                 <span class="card-title" id="card-name">RNBWCOMET</span>
                 <span class="card-creator" id="card-creator">By JollySpider</span>
             </div>
-            
             <div class="art">
                 <img src="https://levelthumbs.prevter.me/thumbnail/10101010" id="card-art" alt="Card Art" crossorigin="anonymous" />
             </div>
-            
             <div class="description-box">
-                <div class="description-text" id="card-desc">
-                    "Really Jolly, more rainbow-slop?"
-                </div>
+                <div class="description-text" id="card-desc">"Really Jolly, more rainbow-slop?"</div>
                 
                 <div class="card-footer-line footer-normal" id="footer-normal">
                     <span>Jolly's Level Cards</span>
@@ -351,7 +336,7 @@
         </div>
     </div>
 
-    <!-- === JAVASCRIPT ENGINE (html-to-image) === -->
+    <!-- === NATIVE SVG SERIALIZATION ENGINE === -->
     <script>
         function updateCard() {
             const id = document.getElementById('input-id').value;
@@ -386,39 +371,62 @@
 
         function downloadCard() {
             const cardElement = document.getElementById('trading-card');
-            const wrapper = document.querySelector('.card-wrapper');
             const originalName = document.getElementById('input-name').value;
-            
-            // Wait for fonts to fully load
+
             document.fonts.ready.then(() => {
+                // Serialize the card's inner HTML code safely
+                const htmlString = new XMLSerializer().serializeToString(cardElement);
                 
-                // Temporarily un-shrink the wrapper so layout measures perfectly 1:1 on mobile
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.height = '1125px';
+                // Bundle styles and HTML elements inside an SVG ForeignObject
+                const svgString = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="825" height="1125">
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap');
+                            @font-face {
+                                font-family: 'Pusab';
+                                src: url('${window.location.origin}/pusab.otf') format('opentype');
+                            }
+                            ${Array.from(document.styleSheets).map(sheet => {
+                                try {
+                                    return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+                                } catch (e) {
+                                    return '';
+                                }
+                            }).join('\n')}
+                        </style>
+                        <foreignObject width="100%" height="100%">
+                            <div xmlns="http://www.w3.org/1999/xhtml">
+                                ${htmlString}
+                            </div>
+                        </foreignObject>
+                    </svg>
+                `;
+
+                const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const URL = window.URL || window.webkitURL || window;
+                const blobURL = URL.createObjectURL(blob);
+
+                const image = new Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 825;
+                    canvas.height = 1125;
+                    const context = canvas.getContext('2d');
+                    context.drawImage(image, 0, 0);
+
+                    const pngData = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = originalName + '-card.png';
+                    link.href = pngData;
+                    link.click();
+                    URL.revokeObjectURL(blobURL);
+                };
                 
-                // Wait a brief moment for the DOM to physically repaint
-                setTimeout(() => {
-                    htmlToImage.toPng(cardElement, { 
-                        quality: 1.0, 
-                        pixelRatio: 2 // Keeps the high resolution
-                    })
-                    .then(function (dataUrl) {
-                        // Shrink UI back down
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
-                        
-                        // Download the file
-                        const link = document.createElement('a');
-                        link.download = originalName + '-card.png';
-                        link.href = dataUrl;
-                        link.click();
-                    })
-                    .catch(function (error) {
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
-                        alert("Rendering failed. Error details: " + error);
-                    });
-                }, 100);
+                image.onerror = () => {
+                    alert("SVG conversion failed to process image elements.");
+                };
+
+                image.src = blobURL;
             });
         }
     </script>
