@@ -1,5 +1,6 @@
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
+const path = require('path');
 
 module.exports = async (req, res) => {
   // Enable CORS
@@ -28,6 +29,9 @@ module.exports = async (req, res) => {
 
     const executablePath = await chromium.executablePath();
     
+    // CRITICAL: Set LD_LIBRARY_PATH so Chromium can locate shared libraries like libnss3.so
+    process.env.LD_LIBRARY_PATH = path.dirname(executablePath);
+
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
@@ -57,7 +61,6 @@ module.exports = async (req, res) => {
       try { await browser.close(); } catch (e) {}
     }
     console.error('Puppeteer Render Error:', error);
-    // Send the EXACT error message back to your phone so we can diagnose it
     return res.status(500).json({ error: error.message || String(error) });
   }
 };
