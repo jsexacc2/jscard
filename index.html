@@ -6,7 +6,8 @@
     <title>Card Generator</title>
     
     <!-- html2canvas library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -374,51 +375,32 @@
         }
 
         function downloadCard() {
-            const cardElement = document.getElementById('trading-card');
-            const wrapper = document.querySelector('.card-wrapper');
-            const originalName = document.getElementById('input-name').value || 'card';
-            const btn = document.getElementById('dl-btn');
+    const cardElement = document.getElementById('trading-card');
+    const originalName = document.getElementById('input-name').value || 'card';
+    const btn = document.getElementById('dl-btn');
 
-            btn.innerText = "Rendering Card...";
-            btn.disabled = true;
+    btn.innerText = "Rendering Card...";
+    btn.disabled = true;
 
-            document.fonts.ready.then(() => {
-                // Un-shrink temporarily for flawless high-res pixel mapping
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.height = '1125px';
+    document.fonts.ready.then(() => {
+        htmlToImage.toPng(cardElement, { quality: 0.95, pixelRatio: 2 })
+            .then(function (dataUrl) {
+                const link = document.createElement('a');
+                link.download = originalName + '-card.png';
+                link.href = dataUrl;
+                link.click();
 
-                setTimeout(() => {
-                    html2canvas(cardElement, {
-                        useCORS: true,
-                        scale: 2,
-                        backgroundColor: null,
-                        onclone: function(clonedDoc) {
-                            const clonedCard = clonedDoc.getElementById('trading-card');
-                            clonedCard.style.background = 'transparent';
-                            clonedCard.style.border = '6px solid #e0e0e0';
-                        }
-                    }).then(canvas => {
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
-
-                        const image = canvas.toDataURL("image/png");
-                        const link = document.createElement('a');
-                        link.download = originalName + '-card.png';
-                        link.href = image;
-                        link.click();
-
-                        btn.innerText = "Download Card PNG";
-                        btn.disabled = false;
-                    }).catch(err => {
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
-                        alert("Download failed: " + err.message);
-                        btn.innerText = "Download Card PNG";
-                        btn.disabled = false;
-                    });
-                }, 100);
+                btn.innerText = "Download Card PNG";
+                btn.disabled = false;
+            })
+            .catch(function (error) {
+                alert("Export failed: " + error);
+                btn.innerText = "Download Card PNG";
+                btn.disabled = false;
             });
-        }
+    });
+}
+
     </script>
 </body>
 </html>
