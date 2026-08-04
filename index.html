@@ -369,9 +369,9 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
 
-        function downloadCard() {
+                async function downloadCard() {
             const serverUrl = "/api/render";
-            const originalName = document.getElementById('input-name').value;
+            const originalName = document.getElementById('input-name').value || 'card';
             const btn = document.getElementById('dl-btn');
             
             btn.innerText = "Rendering in Cloud... (Wait a moment)";
@@ -387,16 +387,20 @@
                              document.querySelector('.card-wrapper').outerHTML + 
                              `</body></html>`;
 
-            fetch(serverUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ html: fullHtml })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Server rendering failed");
-                return response.blob();
-            })
-            .then(blob => {
+            try {
+                const response = await fetch(serverUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ html: fullHtml })
+                });
+
+                if (!response.ok) {
+                    // Try to extract the specific error message JSON sent from the server
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || `Server responded with status ${response.status}`);
+                }
+
+                const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.download = originalName + '-card.png';
@@ -406,14 +410,15 @@
                 btn.innerText = "Download Card PNG";
                 btn.style.background = "#00ff66";
                 btn.disabled = false;
-            })
-            .catch(err => {
+
+            } catch (err) {
                 alert("Rendering failed: " + err.message);
                 btn.innerText = "Download Card PNG";
                 btn.style.background = "#00ff66";
                 btn.disabled = false;
-            });
+            }
         }
+
     </script>
 </body>
 </html>
