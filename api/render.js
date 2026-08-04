@@ -1,6 +1,5 @@
-const chromium = require('@sparticuz/chromium');
+const chromium = require('@sparticuz/chromium-min');
 const puppeteer = require('puppeteer-core');
-const path = require('path');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,21 +21,16 @@ module.exports = async (req, res) => {
       throw new Error('No HTML content provided to render.');
     }
 
-    chromium.setHeadlessMode = true;
-    chromium.setGraphicsMode = false;
-
-    const executablePath = await chromium.executablePath();
-    const execDir = path.dirname(executablePath);
-
-    // Force the Linux loader to find shared libraries like libnss3.so
-    process.env.LD_LIBRARY_PATH = execDir;
+    // Point to a reliable public AWS-hosted pack for the binary
+    const executablePath = await chromium.executablePath(
+      'https://github.com/Sparticuz/chromium/releases/download/v121.0.0/chromium-v121.0.0-pack.tar'
+    );
 
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: executablePath,
       headless: chromium.headless,
-      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
