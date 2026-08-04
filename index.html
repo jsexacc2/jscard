@@ -41,7 +41,6 @@
             gap: 4px;
         }
         
-        /* New Layout for Input Rows matching Mockup */
         .controls > label {
             display: block;
             font-size: 14px;
@@ -72,7 +71,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 8px;
-            align-items: stretch; /* Forces checkbox box to match textarea height */
+            align-items: stretch;
         }
         .input-row input[type="text"], 
         .input-row select, 
@@ -199,6 +198,8 @@
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
+            /* Locked height guarantees the art box below it never shifts */
+            height: 138px;
             padding: 25px 20px 21px 20px; 
             display: flex;
             flex-direction: column;
@@ -208,6 +209,16 @@
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             box-shadow: inset 0px 2px 4px rgba(255,255,255,0.2);
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        /* Logic for when the Creator is hidden via JS */
+        .header.no-creator .card-creator {
+            display: none !important;
+        }
+        .header.no-creator .card-title {
+            font-size: 78px; /* Scales title up to fill the void */
         }
 
         .card-title {
@@ -218,6 +229,7 @@
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             white-space: nowrap; 
+            transition: font-size 0.2s ease;
         }
 
         .card-creator {
@@ -475,14 +487,12 @@
             const rarity = document.getElementById('input-rarity').value;
             const isFoil = document.getElementById('input-foil').checked;
 
-            // Visibility State Checkboxes
             const hideArt = document.getElementById('hide-art').checked;
             const hideName = document.getElementById('hide-name').checked;
             const hideCreator = document.getElementById('hide-creator').checked;
             const hideDesc = document.getElementById('hide-desc').checked;
             const hideRarity = document.getElementById('hide-rarity').checked;
 
-            // Apply Text and Base Logic
             document.getElementById('card-name').innerText = name || " ";
             document.getElementById('card-creator').innerText = "By " + (creator || " ");
             document.getElementById('card-desc').innerText = desc || " ";
@@ -495,7 +505,6 @@
                 span.setAttribute('data-text', formattedRarity); 
             });
 
-            // Set background art source dynamically
             let thumbUrl = '';
             if (useUrl) {
                 thumbUrl = urlInput;
@@ -512,13 +521,19 @@
             document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
 
-            // Apply Visibility Hiding (Preserves Layout perfectly)
+            // Applies Visibility Hiding (Preserves physical space)
             document.querySelector('.art').style.visibility = hideArt ? 'hidden' : 'visible';
             document.getElementById('card-name').style.visibility = hideName ? 'hidden' : 'visible';
-            document.getElementById('card-creator').style.visibility = hideCreator ? 'hidden' : 'visible';
             document.getElementById('card-desc').style.visibility = hideDesc ? 'hidden' : 'visible';
             
-            // Apply Rarity Visibility Hiding to standard span + foil extra elements
+            // Replaces the simple visibility logic with an active class to trigger the resize/re-centering 
+            const headerElement = document.querySelector('.header');
+            if (hideCreator) {
+                headerElement.classList.add('no-creator');
+            } else {
+                headerElement.classList.remove('no-creator');
+            }
+            
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
         }
@@ -533,14 +548,13 @@
             document.getElementById('input-rarity').value = 'common';
             document.getElementById('input-foil').checked = false;
 
-            // Reset all hide checkboxes
             document.getElementById('hide-art').checked = false;
             document.getElementById('hide-name').checked = false;
             document.getElementById('hide-creator').checked = false;
             document.getElementById('hide-desc').checked = false;
             document.getElementById('hide-rarity').checked = false;
 
-            toggleInputMode(); // Triggers updateCard internally
+            toggleInputMode(); 
         }
 
         function downloadCard() {
