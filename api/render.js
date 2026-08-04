@@ -1,5 +1,6 @@
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
+const path = require('path');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,12 +22,15 @@ module.exports = async (req, res) => {
       throw new Error('No HTML content provided to render.');
     }
 
-    // Required configuration for Vercel serverless functions
     chromium.setHeadlessMode = true;
     chromium.setGraphicsMode = false;
 
-    // Get the correct executable path handled by Sparticuz
+    // Get the executable path and its directory
     const executablePath = await chromium.executablePath();
+    const execDir = path.dirname(executablePath);
+
+    // CRITICAL: Point the system loader to the extracted shared libraries (libnspr4.so, libnss3.so)
+    process.env.LD_LIBRARY_PATH = execDir;
 
     browser = await puppeteer.launch({
       args: chromium.args,
