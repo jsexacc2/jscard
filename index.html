@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
     
-    <!-- html2canvas library -->
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <!-- html-to-image library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -37,11 +36,19 @@
             border-radius: 12px;
             margin-bottom: 20px;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .controls label {
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: 500;
         }
         .controls input[type="text"], .controls select, .controls textarea {
             width: 100%;
             padding: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             background: #333;
             border: 1px solid #555;
             color: white;
@@ -56,8 +63,9 @@
             background: #2a2a2a;
             padding: 12px;
             border-radius: 6px;
-            margin-bottom: 15px;
+            margin: 8px 0;
             font-weight: bold;
+            font-size: 14px;
         }
         .toggle-row input[type="checkbox"] {
             transform: scale(1.5);
@@ -73,6 +81,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            margin-top: 10px;
         }
         .btn-clear {
             background: #ff4444 !important;
@@ -139,10 +148,13 @@
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
-            padding: 20px 20px;
+            /* Added explicit top padding to push the weird Pusab baseline into optical center */
+            padding: 30px 20px 20px 20px; 
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            gap: 6px; /* Replaces negative margins with clean flexbox spacing */
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             box-shadow: inset 0px 2px 4px rgba(255,255,255,0.2);
@@ -152,18 +164,18 @@
             font-family: "Pusab", "Arial Black", sans-serif;
             font-size: 60px;
             letter-spacing: 1px;
+            line-height: 1;
+            margin: 0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             white-space: nowrap; 
-            transform: translateY(6px);
         }
 
         .card-creator {
             font-family: "Montserrat", sans-serif;
             font-size: 24px;
-            /*font-weight: 500;*/
-            margin-top: -2px;
+            line-height: 1;
+            margin: 0;
             white-space: nowrap;
-            transform: translateY(6px);
         }
 
         .art {
@@ -191,9 +203,11 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
-            padding: 18px 25px 15px 25px;
+            /* Added explicit top padding to push text down into center alignment */
+            padding: 32px 25px 20px 25px; 
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             box-shadow: inset 0px 4px 10px rgba(0,0,0,0.6);
         }
 
@@ -202,10 +216,10 @@
             color: #FFFFFF;
             text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
             font-size: 40px;
-            padding: 8px;
+            padding: 0;
+            margin: 0 0 25px 0;
             text-align: center;
             font-style: italic;
-            margin-bottom: 20px;
         }
 
         .card-footer-line {
@@ -213,10 +227,12 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 8px;
+            padding-top: 12px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .footer-normal { font-size: 28px; }
@@ -249,7 +265,7 @@
             background: 
                 linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
                 linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
-                url("holo.png"); /* Uses your newly uploaded local repo file */
+                url("holo.png"); 
             background-size: 100% 100%, 100% 100%, cover;
             background-blend-mode: normal, screen, normal;
             filter: saturate(250%);
@@ -286,8 +302,16 @@
 <body>
 
     <div class="controls">
-        <label>Level ID</label>
+        <div class="toggle-row">
+            <label for="input-use-url">Use Custom Image URL</label>
+            <input type="checkbox" id="input-use-url" onchange="toggleInputMode()">
+        </div>
+
+        <label id="label-art-id">Level ID</label>
         <input type="text" id="input-id" value="000000000" oninput="updateCard()">
+
+        <label id="label-art-url" style="display: none;">Custom Image URL</label>
+        <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
         
         <label>Card Name</label>
         <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
@@ -320,20 +344,20 @@
 
     <div class="card-wrapper">
         <div class="card" id="trading-card">
-            <div class="card-bg" id="card-bg" style="background-image: url('https://levelthumbs.prevter.me/thumbnail/10101010'); --seed: 10101010;"></div>
+            <div class="card-bg" id="card-bg" style="background-image: url('https://levelthumbs.prevter.me/thumbnail/000000000'); --seed: 000000000;"></div>
             <div class="holo-foil" id="card-holo"></div>
             
             <div class="header">
-                <span class="card-title" id="card-name">RNBWCOMET</span>
-                <span class="card-creator" id="card-creator">By JollySpider</span>
+                <span class="card-title" id="card-name">LVLNAME</span>
+                <span class="card-creator" id="card-creator">By LVLCREATOR</span>
             </div>
             
             <div class="art">
-                <img src="https://levelthumbs.prevter.me/thumbnail/10101010" id="card-art" alt="Card Art" crossorigin="anonymous" />
+                <img src="https://levelthumbs.prevter.me/thumbnail/000000000" id="card-art" alt="Card Art" crossorigin="anonymous" />
             </div>
             
             <div class="description-box">
-                <div class="description-text" id="card-desc">"Really Jolly, more rainbow-slop?"</div>
+                <div class="description-text" id="card-desc">CARDTEXT</div>
                 
                 <div class="card-footer-line footer-normal" id="footer-normal">
                     <span>Jolly's Level Cards</span>
@@ -353,19 +377,33 @@
     </div>
 
     <script>
+        function toggleInputMode() {
+            const useUrl = document.getElementById('input-use-url').checked;
+            document.getElementById('input-id').style.display = useUrl ? 'none' : 'block';
+            document.getElementById('label-art-id').style.display = useUrl ? 'none' : 'block';
+            
+            document.getElementById('input-url').style.display = useUrl ? 'block' : 'none';
+            document.getElementById('label-art-url').style.display = useUrl ? 'block' : 'none';
+            
+            updateCard();
+        }
+
         function updateCard() {
+            const useUrl = document.getElementById('input-use-url').checked;
             const id = document.getElementById('input-id').value;
+            const urlInput = document.getElementById('input-url').value;
+            
             const name = document.getElementById('input-name').value;
             const creator = document.getElementById('input-creator').value;
             const desc = document.getElementById('input-desc').value;
             const rarity = document.getElementById('input-rarity').value;
             const isFoil = document.getElementById('input-foil').checked;
 
-            document.getElementById('card-name').innerText = name;
-            document.getElementById('card-creator').innerText = "By " + creator;
-            document.getElementById('card-desc').innerText = desc;
+            document.getElementById('card-name').innerText = name || " ";
+            document.getElementById('card-creator').innerText = "By " + (creator || " ");
+            document.getElementById('card-desc').innerText = desc || " ";
             
-            const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            const formattedRarity = rarity ? (rarity.charAt(0).toUpperCase() + rarity.slice(1)) : 'Common';
             const raritySpans = document.querySelectorAll('.card-rarity');
             raritySpans.forEach(span => {
                 span.className = "rarity-" + rarity + " card-rarity";
@@ -373,10 +411,17 @@
                 span.setAttribute('data-text', formattedRarity); 
             });
 
-            const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
+            // Set background art source dynamically
+            let thumbUrl = '';
+            if (useUrl) {
+                thumbUrl = urlInput;
+            } else {
+                thumbUrl = id ? `https://levelthumbs.prevter.me/thumbnail/${id}` : '';
+            }
+
             const bgElement = document.getElementById('card-bg');
             bgElement.style.backgroundImage = `url('${thumbUrl}')`;
-            bgElement.style.setProperty('--seed', id);
+            bgElement.style.setProperty('--seed', id || 1); // Fallback seed rotation
             document.getElementById('card-art').src = thumbUrl;
 
             document.getElementById('card-holo').style.display = isFoil ? 'block' : 'none';
@@ -384,44 +429,61 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
         
-function clearAllInputs() {
+        function clearAllInputs() {
+            document.getElementById('input-use-url').checked = false;
             document.getElementById('input-id').value = '';
+            document.getElementById('input-url').value = '';
             document.getElementById('input-name').value = '';
             document.getElementById('input-creator').value = '';
             document.getElementById('input-desc').value = '';
             document.getElementById('input-rarity').value = 'common';
             document.getElementById('input-foil').checked = false;
-            updateCard();
-    }
+            toggleInputMode(); // Triggers updateCard internally
+        }
 
-    
         function downloadCard() {
-    const cardElement = document.getElementById('trading-card');
-    const originalName = document.getElementById('input-name').value || 'card';
-    const btn = document.getElementById('dl-btn');
+            const cardElement = document.getElementById('trading-card');
+            const wrapper = document.querySelector('.card-wrapper');
+            const originalName = document.getElementById('input-name').value || 'card';
+            const btn = document.getElementById('dl-btn');
 
-    btn.innerText = "Rendering Card...";
-    btn.disabled = true;
+            btn.innerText = "Rendering Card...";
+            btn.disabled = true;
 
-    document.fonts.ready.then(() => {
-        htmlToImage.toPng(cardElement, { quality: 0.95, pixelRatio: 2 })
-            .then(function (dataUrl) {
-                const link = document.createElement('a');
-                link.download = originalName + '.png';
-                link.href = dataUrl;
-                link.click();
+            document.fonts.ready.then(() => {
+                // Pre-scale the wrapper to exact pixel dimensions to ensure identical resolution 
+                wrapper.style.transform = 'scale(1)';
+                wrapper.style.height = '1125px';
 
-                btn.innerText = "Download Card PNG";
-                btn.disabled = false;
-            })
-            .catch(function (error) {
-                alert("Export failed: " + error);
-                btn.innerText = "Download Card PNG";
-                btn.disabled = false;
+                setTimeout(() => {
+                    htmlToImage.toPng(cardElement, { 
+                        quality: 1.0, 
+                        pixelRatio: 2, // Hardcoded multiplier. 2 = 1650x2250 crisp export.
+                        width: 825,    // Explicit width boundary
+                        height: 1125   // Explicit height boundary
+                    })
+                    .then(function (dataUrl) {
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
+
+                        const link = document.createElement('a');
+                        link.download = originalName + '.png';
+                        link.href = dataUrl;
+                        link.click();
+
+                        btn.innerText = "Download Card PNG";
+                        btn.disabled = false;
+                    })
+                    .catch(function (error) {
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
+                        alert("Export failed: " + error);
+                        btn.innerText = "Download Card PNG";
+                        btn.disabled = false;
+                    });
+                }, 150); // Very short delay ensuring un-scaled paint completes
             });
-    });
-}
-
+        }
     </script>
 </body>
 </html>
