@@ -28,6 +28,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh; /* Ensures the body can vertically center the card */
+            box-sizing: border-box;
         }
         .controls {
             width: 100%;
@@ -161,7 +163,6 @@
             margin-top: 10px;
         }
         
-        /* 50/50 Split Action Row */
         .action-row {
             display: flex;
             gap: 10px;
@@ -186,7 +187,6 @@
             color: white;
         }
         
-        /* Modal Popup Styles */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -461,7 +461,7 @@
 </head>
 <body>
 
-    <div class="controls">
+    <div class="controls" id="main-controls">
         <div class="toggle-row" style="margin-top: 0;">
             <label for="input-use-url" style="margin: 0; font-size: 14px;">Use Custom Image URL</label>
             <input type="checkbox" id="input-use-url" onchange="toggleInputMode()">
@@ -532,7 +532,6 @@
 
         <button id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
         
-        <!-- Updated Flex Layout for side-by-side buttons -->
         <div class="action-row">
             <button class="btn-import" onclick="openJsonModal()">JSON</button>
             <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
@@ -600,13 +599,19 @@
             const jsonParam = params.get('json');
             
             if (jsonParam) {
+                // HIDE UI FOR API RENDER: Collapses controls, flexbox centers the card automatically
+                document.getElementById('main-controls').style.display = 'none';
+                document.body.style.justifyContent = 'center';
+
                 try {
                     const data = JSON.parse(jsonParam);
                     applyJsonData(data);
                     
-                    // Allow a 1-second grace period for fonts and network images to load before exporting
                     setTimeout(() => {
-                        downloadCard();
+                        downloadCard().then(() => {
+                            // Attempt to close window after successful download
+                            window.close();
+                        });
                     }, 1000); 
                 } catch (e) {
                     console.error("Failed to parse automated URL JSON parameters:", e);
@@ -614,13 +619,11 @@
             }
         });
 
-        // Modal Logic & Auto-Focus handling
         function openJsonModal() {
             const jsonInput = document.getElementById('json-input');
             jsonInput.value = '';
             document.getElementById('json-modal').style.display = 'flex';
             
-            // Brief timeout ensures the element is fully visible before focusing
             setTimeout(() => {
                 jsonInput.focus();
             }, 50);
@@ -630,7 +633,6 @@
             document.getElementById('json-modal').style.display = 'none';
         }
 
-        // Shared Mapping Logic (Optimized for reuse)
         function applyJsonData(data) {
             if (data["LvL-UH"] !== undefined) document.getElementById('input-use-url').checked = !!data["LvL-UH"];
             
@@ -657,7 +659,7 @@
 
             if (data["CrD-IF"] !== undefined) document.getElementById('input-foil').checked = !!data["CrD-IF"];
 
-            toggleInputMode(); // Triggers updateCard internally
+            toggleInputMode(); 
         }
 
         function submitJson() {
@@ -773,46 +775,57 @@
             toggleInputMode(); 
         }
 
+        // Modified to return a Promise so the Auto-API can await completion before closing
         function downloadCard() {
-            const cardElement = document.getElementById('trading-card');
-            const wrapper = document.querySelector('.card-wrapper');
-            const originalName = document.getElementById('input-name').value || 'card';
-            const btn = document.getElementById('dl-btn');
+            return new Promise((resolve, reject) => {
+                const cardElement = document.getElementById('trading-card');
+                const wrapper = document.querySelector('.card-wrapper');
+                const originalName = document.getElementById('input-name').value || 'card';
+                const btn = document.getElementById('dl-btn');
 
-            btn.innerText = "Rendering Card...";
-            btn.disabled = true;
+                if(btn) {
+                    btn.innerText = "Rendering Card...";
+                    btn.disabled = true;
+                }
 
-            document.fonts.ready.then(() => {
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.height = '1125px';
+                document.fonts.ready.then(() => {
+                    wrapper.style.transform = 'scale(1)';
+                    wrapper.style.height = '1125px';
 
-                setTimeout(() => {
-                    htmlToImage.toPng(cardElement, { 
-                        quality: 1.0, 
-                        pixelRatio: 2, 
-                        width: 825,    
-                        height: 1125   
-                    })
-                    .then(function (dataUrl) {
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
+                    setTimeout(() => {
+                        htmlToImage.toPng(cardElement, { 
+                            quality: 1.0, 
+                            pixelRatio: 2, 
+                            width: 825,    
+                            height: 1125   
+                        })
+                        .then(function (dataUrl) {
+                            wrapper.style.transform = 'scale(0.42)';
+                            wrapper.style.height = '480px';
 
-                        const link = document.createElement('a');
-                        link.download = originalName + '.png';
-                        link.href = dataUrl;
-                        link.click();
+                            const link = document.createElement('a');
+                            link.download = originalName + '.png';
+                            link.href = dataUrl;
+                            link.click();
 
-                        btn.innerText = "Download Card PNG";
-                        btn.disabled = false;
-                    })
-                    .catch(function (error) {
-                        wrapper.style.transform = 'scale(0.42)';
-                        wrapper.style.height = '480px';
-                        alert("Export failed: " + error);
-                        btn.innerText = "Download Card PNG";
-                        btn.disabled = false;
-                    });
-                }, 150);
+                            if(btn) {
+                                btn.innerText = "Download Card PNG";
+                                btn.disabled = false;
+                            }
+                            resolve(); // Let the API script know the download is complete
+                        })
+                        .catch(function (error) {
+                            wrapper.style.transform = 'scale(0.42)';
+                            wrapper.style.height = '480px';
+                            alert("Export failed: " + error);
+                            if(btn) {
+                                btn.innerText = "Download Card PNG";
+                                btn.disabled = false;
+                            }
+                            reject(error);
+                        });
+                    }, 150);
+                });
             });
         }
     </script>
