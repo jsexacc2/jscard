@@ -69,6 +69,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.2s;
         }
         .card-wrapper {
             transform: scale(0.42);
@@ -368,116 +369,50 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
 
-        async function getBase64FromUrl(url) {
-            try {
-                const response = await fetch(url, { mode: 'cors' });
-                const blob = await response.blob();
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.readAsDataURL(blob);
-                });
-            } catch (e) {
-                return url; 
-            }
-        }
-
-        async function downloadCard() {
-            const cardElement = document.getElementById('trading-card');
+        function downloadCard() {
+            const serverUrl = "/api/render";
             const originalName = document.getElementById('input-name').value;
-            const isFoil = document.getElementById('input-foil').checked;
-            const id = document.getElementById('input-id').value;
             const btn = document.getElementById('dl-btn');
-
-            btn.innerText = "Processing Images...";
+            
+            btn.innerText = "Rendering in Cloud... (Wait a moment)";
+            btn.style.background = "#ffcc00";
             btn.disabled = true;
 
-            await document.fonts.ready;
+            const baseUrl = window.location.href.split('?')[0]; 
+            const baseTag = `<base href="${baseUrl}">`;
+            
+            const fullHtml = `<!DOCTYPE html><html><head>${baseTag}` + 
+                             document.head.innerHTML + 
+                             `</head><body>` + 
+                             document.querySelector('.card-wrapper').outerHTML + 
+                             `</body></html>`;
 
-            try {
-                // Pre-convert external images to Base64 to bypass mobile CORS limits
-                const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
-                const thumbBase64 = await getBase64FromUrl(thumbUrl);
-
-                const clonedCard = cardElement.cloneNode(true);
-                clonedCard.querySelector('#card-art').src = thumbBase64;
-                clonedCard.querySelector('#card-bg').style.backgroundImage = `url('${thumbBase64}')`;
-
-                if (isFoil) {
-                    const foilUrl = "https://lh3.googleusercontent.com/d/1SO8wWRQTw2Ggaz9dgzTVPMgicVFncnCL";
-                    const foilBase64 = await getBase64FromUrl(foilUrl);
-                    clonedCard.querySelector('.holo-foil').style.background = `
-                        linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
-                        linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
-                        url("${foilBase64}")
-                    `;
-                    clonedCard.querySelector('.holo-foil').style.backgroundSize = '100% 100%, 100% 100%, cover';
-                    clonedCard.querySelector('.holo-foil').style.backgroundBlendMode = 'normal, screen, normal';
-                }
-
-                const htmlString = new XMLSerializer().serializeToString(clonedCard);
+            fetch(serverUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ html: fullHtml })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Server rendering failed");
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = originalName + '-card.png';
+                link.href = url;
+                link.click();
                 
-                const svgString = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="825" height="1125">
-                        <style>
-                            @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap');
-                            @font-face {
-                                font-family: 'Pusab';
-                                src: url('${window.location.origin}/pusab.otf') format('opentype');
-                            }
-                            ${Array.from(document.styleSheets).map(sheet => {
-                                try {
-                                    return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
-                                } catch (e) {
-                                    return '';
-                                }
-                            }).join('\n')}
-                        </style>
-                        <foreignObject width="100%" height="100%">
-                            <div xmlns="http://www.w3.org/1999/xhtml">
-                                ${htmlString}
-                            </div>
-                        </foreignObject>
-                    </svg>
-                `;
-
-                const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-                const blobURL = URL.createObjectURL(blob);
-
-                const image = new Image();
-                image.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 825;
-                    canvas.height = 1125;
-                    const context = canvas.getContext('2d');
-                    context.drawImage(image, 0, 0);
-
-                    const pngData = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.download = originalName + '-card.png';
-                    link.href = pngData;
-                    link.click();
-                    URL.revokeObjectURL(blobURL);
-
-                    btn.innerText = "Download Card PNG";
-                    btn.disabled = false;
-                };
-
-                image.onerror = (e) => {
-                    console.error(e);
-                    alert("SVG conversion failed to process image elements.");
-                    btn.innerText = "Download Card PNG";
-                    btn.disabled = false;
-                };
-
-                image.src = blobURL;
-
-            } catch (err) {
-                console.error(err);
-                alert("Failed to generate image: " + err.message);
                 btn.innerText = "Download Card PNG";
+                btn.style.background = "#00ff66";
                 btn.disabled = false;
-            }
+            })
+            .catch(err => {
+                alert("Rendering failed: " + err.message);
+                btn.innerText = "Download Card PNG";
+                btn.style.background = "#00ff66";
+                btn.disabled = false;
+            });
         }
     </script>
 </body>
