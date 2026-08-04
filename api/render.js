@@ -25,11 +25,10 @@ module.exports = async (req, res) => {
     chromium.setHeadlessMode = true;
     chromium.setGraphicsMode = false;
 
-    // Get the executable path and its directory
     const executablePath = await chromium.executablePath();
     const execDir = path.dirname(executablePath);
 
-    // CRITICAL: Point the system loader to the extracted shared libraries (libnspr4.so, libnss3.so)
+    // Force the Linux loader to find shared libraries like libnss3.so
     process.env.LD_LIBRARY_PATH = execDir;
 
     browser = await puppeteer.launch({
