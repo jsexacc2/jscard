@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
     
+    <!-- html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -236,7 +239,7 @@
             background: 
                 linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
                 linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
-                url('holo.png');
+                url("holo.png"); /* Uses your newly uploaded local repo file */
             background-size: 100% 100%, 100% 100%, cover;
             background-blend-mode: normal, screen, normal;
             filter: saturate(250%);
@@ -370,68 +373,51 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
 
-        async function downloadCard() {
+        function downloadCard() {
             const cardElement = document.getElementById('trading-card');
+            const wrapper = document.querySelector('.card-wrapper');
             const originalName = document.getElementById('input-name').value || 'card';
             const btn = document.getElementById('dl-btn');
 
             btn.innerText = "Rendering Card...";
             btn.disabled = true;
 
-            await document.fonts.ready;
+            document.fonts.ready.then(() => {
+                // Un-shrink temporarily for flawless high-res pixel mapping
+                wrapper.style.transform = 'scale(1)';
+                wrapper.style.height = '1125px';
 
-            // Extract exact CSS rules from your stylesheet so fonts/gradients map correctly
-            let cssText = '';
-            for (let sheet of document.styleSheets) {
-                try {
-                    for (let rule of sheet.cssRules) {
-                        cssText += rule.cssText + '\n';
-                    }
-                } catch(e) {}
-            }
+                setTimeout(() => {
+                    html2canvas(cardElement, {
+                        useCORS: true,
+                        scale: 2,
+                        backgroundColor: null,
+                        onclone: function(clonedDoc) {
+                            const clonedCard = clonedDoc.getElementById('trading-card');
+                            clonedCard.style.background = 'transparent';
+                            clonedCard.style.border = '6px solid #e0e0e0';
+                        }
+                    }).then(canvas => {
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
 
-            const htmlContent = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="825" height="1125">
-                    <style>
-                        ${cssText}
-                        .card-wrapper { transform: none !important; height: 1125px !important; }
-                    </style>
-                    <foreignObject width="100%" height="100%">
-                        <div xmlns="http://www.w3.org/1999/xhtml">
-                            ${cardElement.outerHTML}
-                        </div>
-                    </foreignObject>
-                </svg>
-            `;
+                        const image = canvas.toDataURL("image/png");
+                        const link = document.createElement('a');
+                        link.download = originalName + '-card.png';
+                        link.href = image;
+                        link.click();
 
-            const blob = new Blob([htmlContent], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = 825;
-                canvas.height = 1125;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-
-                const a = document.createElement('a');
-                a.download = originalName + '-card.png';
-                a.href = canvas.toDataURL('image/png');
-                a.click();
-
-                URL.revokeObjectURL(url);
-                btn.innerText = "Download Card PNG";
-                btn.disabled = false;
-            };
-
-            img.onerror = () => {
-                alert("Render failed. Ensure images are accessible.");
-                btn.innerText = "Download Card PNG";
-                btn.disabled = false;
-            };
-
-            img.src = url;
+                        btn.innerText = "Download Card PNG";
+                        btn.disabled = false;
+                    }).catch(err => {
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
+                        alert("Download failed: " + err.message);
+                        btn.innerText = "Download Card PNG";
+                        btn.disabled = false;
+                    });
+                }, 100);
+            });
         }
     </script>
 </body>
