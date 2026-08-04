@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh; /* Ensures the body can vertically center the card */
+            min-height: 100vh; 
             box-sizing: border-box;
         }
         .controls {
@@ -603,18 +603,37 @@
                 document.getElementById('main-controls').style.display = 'none';
                 document.body.style.justifyContent = 'center';
 
+                // Add visual status text for the black screen
+                const statusText = document.createElement('h2');
+                statusText.style.color = '#00ff66';
+                statusText.style.position = 'absolute';
+                statusText.style.top = '20px';
+                statusText.style.fontFamily = '"Montserrat", sans-serif';
+                statusText.innerText = 'Automated Request Detected: Rendering Card...';
+                document.body.appendChild(statusText);
+
                 try {
                     const data = JSON.parse(jsonParam);
                     applyJsonData(data);
                     
                     setTimeout(() => {
                         downloadCard().then(() => {
-                            // Attempt to close window after successful download
-                            window.close();
+                            statusText.innerText = 'Download initiated! Tab will close in 2.5 seconds.';
+                            
+                            // 2.5s buffer guarantees the download registers before tab death
+                            setTimeout(() => {
+                                window.close();
+                            }, 2500); 
+
+                        }).catch(e => {
+                            statusText.innerText = 'Error rendering card.';
+                            statusText.style.color = '#ff4444';
                         });
                     }, 1000); 
                 } catch (e) {
                     console.error("Failed to parse automated URL JSON parameters:", e);
+                    statusText.innerText = 'JSON Parsing Error.';
+                    statusText.style.color = '#ff4444';
                 }
             }
         });
@@ -775,7 +794,6 @@
             toggleInputMode(); 
         }
 
-        // Modified to return a Promise so the Auto-API can await completion before closing
         function downloadCard() {
             return new Promise((resolve, reject) => {
                 const cardElement = document.getElementById('trading-card');
@@ -812,7 +830,7 @@
                                 btn.innerText = "Download Card PNG";
                                 btn.disabled = false;
                             }
-                            resolve(); // Let the API script know the download is complete
+                            resolve(); 
                         })
                         .catch(function (error) {
                             wrapper.style.transform = 'scale(0.42)';
