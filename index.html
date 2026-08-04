@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
     
-    <!-- html2canvas library for taking the screenshot -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- The robust html-to-image engine (replaces html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     
-    <!-- Properly imports Google Fonts for html2canvas compatibility -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -149,7 +149,7 @@
             font-size: 60px;
             letter-spacing: 1px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-            white-space: nowrap; /* Fixes html2canvas text smushing */
+            white-space: nowrap; 
         }
 
         .card-creator {
@@ -157,7 +157,7 @@
             font-size: 32px;
             font-weight: 500;
             margin-top: -2px;
-            white-space: nowrap; /* Fixes html2canvas text smushing */
+            white-space: nowrap;
         }
 
         .art {
@@ -213,7 +213,6 @@
             letter-spacing: 1px;
         }
 
-        /* Classes to toggle normal vs foil fonts/layouts */
         .footer-normal { font-size: 28px; }
         .footer-foil { font-size: 20px; display: none; }
 
@@ -249,7 +248,7 @@
             background-size: 100% 100%, 100% 100%, cover;
             background-blend-mode: normal, screen, normal;
             filter: saturate(250%);
-            display: none; /* Hidden by default */
+            display: none; 
         }
 
         [class^="rarity-"] {
@@ -306,7 +305,6 @@
             <option value="heavenly">Heavenly</option>
         </select>
 
-        <!-- Toggle Switch -->
         <div class="toggle-row">
             <label for="input-foil">Enable Foil / RNBW Version</label>
             <input type="checkbox" id="input-foil" onchange="updateCard()">
@@ -336,13 +334,11 @@
                     "Really Jolly, more rainbow-slop?"
                 </div>
                 
-                <!-- NORMAL FOOTER TEMPLATE -->
                 <div class="card-footer-line footer-normal" id="footer-normal">
                     <span>Jolly's Level Cards</span>
                     <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
                 </div>
 
-                <!-- FOIL FOOTER TEMPLATE -->
                 <div class="card-footer-line footer-foil" id="footer-foil">
                     <span>JOLLY'S LEVEL CARDS</span>
                     <div class="footer-right">
@@ -355,10 +351,9 @@
         </div>
     </div>
 
-    <!-- === JAVASCRIPT ENGINE === -->
+    <!-- === JAVASCRIPT ENGINE (html-to-image) === -->
     <script>
         function updateCard() {
-            // Get values from inputs
             const id = document.getElementById('input-id').value;
             const name = document.getElementById('input-name').value;
             const creator = document.getElementById('input-creator').value;
@@ -366,12 +361,10 @@
             const rarity = document.getElementById('input-rarity').value;
             const isFoil = document.getElementById('input-foil').checked;
 
-            // Update Text
             document.getElementById('card-name').innerText = name;
             document.getElementById('card-creator').innerText = "By " + creator;
             document.getElementById('card-desc').innerText = desc;
             
-            // Apply proper rarity capitalization and CSS classes to both footers
             const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
             const raritySpans = document.querySelectorAll('.card-rarity');
             raritySpans.forEach(span => {
@@ -380,14 +373,12 @@
                 span.setAttribute('data-text', formattedRarity); 
             });
 
-            // Update Images and Seed value
             const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
             const bgElement = document.getElementById('card-bg');
             bgElement.style.backgroundImage = `url('${thumbUrl}')`;
             bgElement.style.setProperty('--seed', id);
             document.getElementById('card-art').src = thumbUrl;
 
-            // Toggle Foil vs Normal Styles
             document.getElementById('card-holo').style.display = isFoil ? 'block' : 'none';
             document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
@@ -395,22 +386,39 @@
 
         function downloadCard() {
             const cardElement = document.getElementById('trading-card');
+            const wrapper = document.querySelector('.card-wrapper');
+            const originalName = document.getElementById('input-name').value;
             
-            // Forces the script to wait until all fonts are loaded before taking the screenshot
+            // Wait for fonts to fully load
             document.fonts.ready.then(() => {
-                html2canvas(cardElement, {
-                    useCORS: true,
-                    scale: 2,
-                    backgroundColor: null 
-                }).then(canvas => {
-                    const image = canvas.toDataURL("image/png");
-                    const link = document.createElement('a');
-                    link.download = document.getElementById('input-name').value + '-card.png';
-                    link.href = image;
-                    link.click();
-                }).catch(err => {
-                    alert("Download failed. If using Foil, ensure the holographic texture URL allows CORS (try moving it from Google Drive to an image host like Imgur).");
-                });
+                
+                // Temporarily un-shrink the wrapper so layout measures perfectly 1:1 on mobile
+                wrapper.style.transform = 'scale(1)';
+                wrapper.style.height = '1125px';
+                
+                // Wait a brief moment for the DOM to physically repaint
+                setTimeout(() => {
+                    htmlToImage.toPng(cardElement, { 
+                        quality: 1.0, 
+                        pixelRatio: 2 // Keeps the high resolution
+                    })
+                    .then(function (dataUrl) {
+                        // Shrink UI back down
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
+                        
+                        // Download the file
+                        const link = document.createElement('a');
+                        link.download = originalName + '-card.png';
+                        link.href = dataUrl;
+                        link.click();
+                    })
+                    .catch(function (error) {
+                        wrapper.style.transform = 'scale(0.42)';
+                        wrapper.style.height = '480px';
+                        alert("Rendering failed. Error details: " + error);
+                    });
+                }, 100);
             });
         }
     </script>
