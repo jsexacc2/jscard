@@ -4,10 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
+    
     <!-- html2canvas library for taking the screenshot -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Properly imports Google Fonts for html2canvas compatibility -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap');
+        /* === LOCAL FONT IMPORT === */
+        @font-face {
+            font-family: 'Pusab';
+            src: url('pusab.otf') format('opentype');
+        }
 
         /* === MOBILE APP UI STYLES === */
         body {
@@ -71,7 +82,7 @@
             height: 480px; 
         }
 
-        /* === YOUR EXACT CARD CSS MERGED === */
+        /* === CARD CSS === */
         .card {
             width: 825px;
             height: 1125px;
@@ -89,6 +100,7 @@
             box-shadow: 0px 10px 30px rgba(0,0,0,0.8);
             background: linear-gradient(white, white) padding-box, 
             linear-gradient(135deg, #ffffff, #c9c9c9) border-box;
+            box-sizing: border-box;
         }
 
         .card-bg {
@@ -137,8 +149,7 @@
             font-size: 60px;
             letter-spacing: 1px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
-            text-wrap: nowrap;
-            align-content: center;
+            white-space: nowrap; /* Fixes html2canvas text smushing */
         }
 
         .card-creator {
@@ -146,8 +157,7 @@
             font-size: 32px;
             font-weight: 500;
             margin-top: -2px;
-            text-wrap: nowrap;
-            align-content: center;
+            white-space: nowrap; /* Fixes html2canvas text smushing */
         }
 
         .art {
@@ -386,18 +396,21 @@
         function downloadCard() {
             const cardElement = document.getElementById('trading-card');
             
-            html2canvas(cardElement, {
-                useCORS: true,
-                scale: 2,
-                backgroundColor: null 
-            }).then(canvas => {
-                const image = canvas.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = document.getElementById('input-name').value + '-card.png';
-                link.href = image;
-                link.click();
-            }).catch(err => {
-                alert("Download failed. If using Foil, ensure the holographic texture URL allows CORS (try moving it from Google Drive to Imgur).");
+            // Forces the script to wait until all fonts are loaded before taking the screenshot
+            document.fonts.ready.then(() => {
+                html2canvas(cardElement, {
+                    useCORS: true,
+                    scale: 2,
+                    backgroundColor: null 
+                }).then(canvas => {
+                    const image = canvas.toDataURL("image/png");
+                    const link = document.createElement('a');
+                    link.download = document.getElementById('input-name').value + '-card.png';
+                    link.href = image;
+                    link.click();
+                }).catch(err => {
+                    alert("Download failed. If using Foil, ensure the holographic texture URL allows CORS (try moving it from Google Drive to an image host like Imgur).");
+                });
             });
         }
     </script>
