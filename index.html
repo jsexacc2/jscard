@@ -302,7 +302,7 @@
             <input type="checkbox" id="input-foil" onchange="updateCard()">
         </div>
 
-        <button onclick="downloadCard()">Download Card PNG</button>
+        <button id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
     </div>
 
     <div class="card-wrapper">
@@ -336,7 +336,6 @@
         </div>
     </div>
 
-    <!-- === NATIVE SVG SERIALIZATION ENGINE === -->
     <script>
         function updateCard() {
             const id = document.getElementById('input-id').value;
@@ -369,15 +368,55 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
         }
 
-        function downloadCard() {
+        async function getBase64FromUrl(url) {
+            try {
+                const response = await fetch(url, { mode: 'cors' });
+                const blob = await response.blob();
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                return url; 
+            }
+        }
+
+        async function downloadCard() {
             const cardElement = document.getElementById('trading-card');
             const originalName = document.getElementById('input-name').value;
+            const isFoil = document.getElementById('input-foil').checked;
+            const id = document.getElementById('input-id').value;
+            const btn = document.getElementById('dl-btn');
 
-            document.fonts.ready.then(() => {
-                // Serialize the card's inner HTML code safely
-                const htmlString = new XMLSerializer().serializeToString(cardElement);
+            btn.innerText = "Processing Images...";
+            btn.disabled = true;
+
+            await document.fonts.ready;
+
+            try {
+                // Pre-convert external images to Base64 to bypass mobile CORS limits
+                const thumbUrl = `https://levelthumbs.prevter.me/thumbnail/${id}`;
+                const thumbBase64 = await getBase64FromUrl(thumbUrl);
+
+                const clonedCard = cardElement.cloneNode(true);
+                clonedCard.querySelector('#card-art').src = thumbBase64;
+                clonedCard.querySelector('#card-bg').style.backgroundImage = `url('${thumbBase64}')`;
+
+                if (isFoil) {
+                    const foilUrl = "https://lh3.googleusercontent.com/d/1SO8wWRQTw2Ggaz9dgzTVPMgicVFncnCL";
+                    const foilBase64 = await getBase64FromUrl(foilUrl);
+                    clonedCard.querySelector('.holo-foil').style.background = `
+                        linear-gradient(80deg, transparent 10%, rgba(255,255,255, 0.9) 35%, rgba(255,255,255, 0.9) 25%, transparent 50%),
+                        linear-gradient(80deg, rgba(255, 100, 100, 1), rgba(255, 215, 0, 1), rgba(0, 255, 128, 1), rgba(0, 191, 255, 1), rgba(255, 0, 255, 1)),
+                        url("${foilBase64}")
+                    `;
+                    clonedCard.querySelector('.holo-foil').style.backgroundSize = '100% 100%, 100% 100%, cover';
+                    clonedCard.querySelector('.holo-foil').style.backgroundBlendMode = 'normal, screen, normal';
+                }
+
+                const htmlString = new XMLSerializer().serializeToString(clonedCard);
                 
-                // Bundle styles and HTML elements inside an SVG ForeignObject
                 const svgString = `
                     <svg xmlns="http://www.w3.org/2000/svg" width="825" height="1125">
                         <style>
@@ -403,7 +442,6 @@
                 `;
 
                 const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-                const URL = window.URL || window.webkitURL || window;
                 const blobURL = URL.createObjectURL(blob);
 
                 const image = new Image();
@@ -420,14 +458,26 @@
                     link.href = pngData;
                     link.click();
                     URL.revokeObjectURL(blobURL);
+
+                    btn.innerText = "Download Card PNG";
+                    btn.disabled = false;
                 };
-                
-                image.onerror = () => {
+
+                image.onerror = (e) => {
+                    console.error(e);
                     alert("SVG conversion failed to process image elements.");
+                    btn.innerText = "Download Card PNG";
+                    btn.disabled = false;
                 };
 
                 image.src = blobURL;
-            });
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to generate image: " + err.message);
+                btn.innerText = "Download Card PNG";
+                btn.disabled = false;
+            }
         }
     </script>
 </body>
