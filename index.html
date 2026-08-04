@@ -92,7 +92,6 @@
             resize: vertical;
         }
         
-        /* Fixed small red square clear button */
         .input-row .btn-clear-field {
             background: #ff4444 !important;
             color: white !important;
@@ -149,7 +148,6 @@
             margin-right: 10px;
         }
 
-        /* Restricted to direct children so it doesn't break small field buttons */
         .controls > button {
             width: 100%;
             padding: 15px;
@@ -169,7 +167,69 @@
             padding: 12px !important;
             margin-top: 6px !important;
         }
+        .btn-import {
+            background: #4488ff !important;
+            color: white !important;
+            font-size: 15px !important;
+            padding: 12px !important;
+            margin-top: 6px !important;
+        }
         
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            border: 2px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .modal-content h3 {
+            margin: 0;
+            font-size: 20px;
+            text-align: center;
+        }
+        .modal-content textarea {
+            width: 100%;
+            background: #121212;
+            color: #00ff66;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-modal-submit { background: #4488ff; color: white; }
+        .btn-modal-cancel { background: #555; color: white; }
+
         .card-wrapper {
             transform: scale(0.42);
             transform-origin: top center;
@@ -461,6 +521,27 @@
 
         <button id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
         <button class="btn-clear" onclick="clearAllInputs()">Clear All Inputs</button>
+        <button class="btn-import" onclick="openJsonModal()">Import JSON</button>
+    </div>
+
+    <!-- JSON Import Modal -->
+    <div id="json-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Import Card Data</h3>
+            <textarea id="json-input" rows="10" placeholder='{
+  "LvL-UH": false,
+  "LvL-IM": "10101010",
+  "LvL-NM": "MY LEVEL",
+  "LvL-CR": "CreatorName",
+  "LvL-NT": "Level description here",
+  "LvL-RA": "epic",
+  "CrD-IF": false
+}'></textarea>
+            <div class="modal-buttons">
+                <button class="btn-modal-submit" onclick="submitJson()">Submit</button>
+                <button class="btn-modal-cancel" onclick="closeJsonModal()">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <div class="card-wrapper">
@@ -498,6 +579,57 @@
     </div>
 
     <script>
+        // Modal Logic
+        function openJsonModal() {
+            document.getElementById('json-input').value = '';
+            document.getElementById('json-modal').style.display = 'flex';
+        }
+
+        function closeJsonModal() {
+            document.getElementById('json-modal').style.display = 'none';
+        }
+
+        function submitJson() {
+            const jsonText = document.getElementById('json-input').value;
+            try {
+                const data = JSON.parse(jsonText);
+
+                if (data["LvL-UH"] !== undefined) document.getElementById('input-use-url').checked = !!data["LvL-UH"];
+                
+                // Route image data to correct field based on toggle state
+                const isUrl = document.getElementById('input-use-url').checked;
+                if (isUrl) {
+                    document.getElementById('input-url').value = data["LvL-IM"] || "";
+                    document.getElementById('input-id').value = ""; 
+                } else {
+                    document.getElementById('input-id').value = data["LvL-IM"] || "";
+                    document.getElementById('input-url').value = "";
+                }
+
+                if (data["LvL-NM"] !== undefined) document.getElementById('input-name').value = data["LvL-NM"];
+                if (data["LvL-CR"] !== undefined) document.getElementById('input-creator').value = data["LvL-CR"];
+                if (data["LvL-NT"] !== undefined) document.getElementById('input-desc').value = data["LvL-NT"];
+                
+                // Map Rarity (forcing lowercase to match option values)
+                if (data["LvL-RA"]) {
+                    const r = data["LvL-RA"].toLowerCase();
+                    const raritySelect = document.getElementById('input-rarity');
+                    if ([...raritySelect.options].some(opt => opt.value === r)) {
+                        raritySelect.value = r;
+                    }
+                }
+
+                if (data["CrD-IF"] !== undefined) document.getElementById('input-foil').checked = !!data["CrD-IF"];
+
+                // Closes modal and triggers UI/Card update
+                closeJsonModal();
+                toggleInputMode();
+
+            } catch (error) {
+                alert("Invalid JSON format. Please check your syntax and try again.");
+            }
+        }
+
         function toggleInputMode() {
             const useUrl = document.getElementById('input-use-url').checked;
             document.getElementById('input-id').style.display = useUrl ? 'none' : 'block';
