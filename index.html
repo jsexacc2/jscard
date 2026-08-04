@@ -90,6 +90,30 @@
         .input-row textarea {
             resize: vertical;
         }
+        
+        /* New Single-Field Clear Button Styling */
+        .btn-clear-field {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 38px;
+            font-family: inherit;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin: 0;
+            padding: 0;
+            transition: 0.15s ease;
+        }
+        .btn-clear-field:hover {
+            background: #ff2222;
+        }
+
         .hide-box {
             width: 44px;
             background: #333;
@@ -198,7 +222,6 @@
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
-            /* Locked height guarantees the art box below it never shifts */
             height: 138px;
             padding: 25px 20px 21px 20px; 
             display: flex;
@@ -213,12 +236,11 @@
             transition: all 0.2s ease;
         }
 
-        /* Logic for when the Creator is hidden via JS */
         .header.no-creator .card-creator {
             display: none !important;
         }
         .header.no-creator .card-title {
-            font-size: 78px; /* Scales title up to fill the void */
+            font-size: 78px; 
         }
 
         .card-title {
@@ -376,6 +398,7 @@
         <div class="input-row">
             <input type="text" id="input-id" value="000000000" oninput="updateCard()">
             <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
+            <button class="btn-clear-field" onclick="clearField('input-id'); clearField('input-url');" title="Clear Field">X</button>
             <div class="hide-box">
                 <input type="checkbox" id="hide-art" onchange="updateCard()">
             </div>
@@ -384,6 +407,7 @@
         <label>Card Name</label>
         <div class="input-row">
             <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
+            <button class="btn-clear-field" onclick="clearField('input-name')" title="Clear Field">X</button>
             <div class="hide-box">
                 <input type="checkbox" id="hide-name" onchange="updateCard()">
             </div>
@@ -392,6 +416,7 @@
         <label>Creator</label>
         <div class="input-row">
             <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
+            <button class="btn-clear-field" onclick="clearField('input-creator')" title="Clear Field">X</button>
             <div class="hide-box">
                 <input type="checkbox" id="hide-creator" onchange="updateCard()">
             </div>
@@ -400,6 +425,7 @@
         <label>Description</label>
         <div class="input-row">
             <textarea id="input-desc" rows="3" oninput="updateCard()">CARDTEXT</textarea>
+            <button class="btn-clear-field" onclick="clearField('input-desc')" title="Clear Field">X</button>
             <div class="hide-box">
                 <input type="checkbox" id="hide-desc" onchange="updateCard()">
             </div>
@@ -416,6 +442,7 @@
                 <option value="mythic" selected>Mythic</option>
                 <option value="heavenly">Heavenly</option>
             </select>
+            <button class="btn-clear-field" onclick="clearField('input-rarity')" title="Clear Field">X</button>
             <div class="hide-box">
                 <input type="checkbox" id="hide-rarity" onchange="updateCard()">
             </div>
@@ -476,6 +503,19 @@
             updateCard();
         }
 
+        // New function specifically for targeting single inputs
+        function clearField(fieldId) {
+            const field = document.getElementById(fieldId);
+            if(field) {
+                if(field.tagName === 'SELECT') {
+                    field.value = 'common'; // Reverts to base rarity
+                } else {
+                    field.value = '';
+                }
+                updateCard();
+            }
+        }
+
         function updateCard() {
             const useUrl = document.getElementById('input-use-url').checked;
             const id = document.getElementById('input-id').value;
@@ -521,12 +561,10 @@
             document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
 
-            // Applies Visibility Hiding (Preserves physical space)
             document.querySelector('.art').style.visibility = hideArt ? 'hidden' : 'visible';
             document.getElementById('card-name').style.visibility = hideName ? 'hidden' : 'visible';
             document.getElementById('card-desc').style.visibility = hideDesc ? 'hidden' : 'visible';
             
-            // Replaces the simple visibility logic with an active class to trigger the resize/re-centering 
             const headerElement = document.querySelector('.header');
             if (hideCreator) {
                 headerElement.classList.add('no-creator');
