@@ -1,9 +1,7 @@
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
-const path = require('path');
 
 module.exports = async (req, res) => {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,31 +21,29 @@ module.exports = async (req, res) => {
       throw new Error('No HTML content provided to render.');
     }
 
-    // Configure Sparticuz Chromium for Vercel serverless environment
+    // Required configuration for Vercel serverless functions
     chromium.setHeadlessMode = true;
     chromium.setGraphicsMode = false;
 
+    // Get the correct executable path handled by Sparticuz
     const executablePath = await chromium.executablePath();
-    
-    // CRITICAL: Set LD_LIBRARY_PATH so Chromium can locate shared libraries like libnss3.so
-    process.env.LD_LIBRARY_PATH = path.dirname(executablePath);
 
     browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: executablePath,
       headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
     await page.setViewport({ width: 900, height: 1200, deviceScaleFactor: 2 });
     
-    // Load the HTML content sent from the frontend
     await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
 
     const element = await page.$('.card');
     if (!element) {
-      throw new Error('Target element with class ".card" was not found in the rendered page.');
+      throw new Error('Target element with class ".card" was not found.');
     }
     
     const imageBuffer = await element.screenshot({ type: 'png', omitBackground: true });
