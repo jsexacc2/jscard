@@ -148,13 +148,14 @@
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
-            /* Added explicit top padding to push the weird Pusab baseline into optical center */
-            padding: 30px 20px 20px 20px; 
+            /* 25px top and 21px bottom mathematically perfectly balances the Pusab font baseline */
+            padding: 25px 20px 21px 20px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 6px; /* Replaces negative margins with clean flexbox spacing */
+            /* Reduced from 6px to 4px to pull the creator text 2px closer to the title */
+            gap: 4px; 
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
             box-shadow: inset 0px 2px 4px rgba(255,255,255,0.2);
