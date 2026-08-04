@@ -40,22 +40,73 @@
             flex-direction: column;
             gap: 4px;
         }
-        .controls label {
-            margin-top: 8px;
+        
+        /* New Layout for Input Rows matching Mockup */
+        .controls > label {
+            display: block;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 700;
+            margin-top: 12px;
+            margin-bottom: 4px;
         }
-        .controls input[type="text"], .controls select, .controls textarea {
-            width: 100%;
-            padding: 10px;
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+        .label-row label {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .hide-label {
+            width: 44px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
             margin-bottom: 8px;
+            align-items: stretch; /* Forces checkbox box to match textarea height */
+        }
+        .input-row input[type="text"], 
+        .input-row select, 
+        .input-row textarea {
+            flex: 1;
+            padding: 10px;
             background: #333;
             border: 1px solid #555;
             color: white;
             border-radius: 6px;
             font-family: inherit;
             box-sizing: border-box;
+            margin: 0;
+            width: auto;
         }
+        .input-row textarea {
+            resize: vertical;
+        }
+        .hide-box {
+            width: 44px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .hide-box input[type="checkbox"] {
+            transform: scale(1.5);
+            cursor: pointer;
+            margin: 0;
+        }
+
         .toggle-row {
             display: flex;
             align-items: center;
@@ -63,7 +114,7 @@
             background: #2a2a2a;
             padding: 12px;
             border-radius: 6px;
-            margin: 8px 0;
+            margin: 12px 0 8px 0;
             font-weight: bold;
             font-size: 14px;
         }
@@ -148,13 +199,11 @@
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
             color: #FFFFFF;
-            /* 25px top and 21px bottom mathematically perfectly balances the Pusab font baseline */
             padding: 25px 20px 21px 20px; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            /* Reduced from 6px to 4px to pull the creator text 2px closer to the title */
             gap: 4px; 
             border-top-left-radius: 12px;
             border-top-right-radius: 12px;
@@ -204,7 +253,6 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
-            /* Added explicit top padding to push text down into center alignment */
             padding: 32px 25px 20px 25px; 
             display: flex;
             flex-direction: column;
@@ -303,39 +351,66 @@
 <body>
 
     <div class="controls">
-        <div class="toggle-row">
-            <label for="input-use-url">Use Custom Image URL</label>
+        <div class="toggle-row" style="margin-top: 0;">
+            <label for="input-use-url" style="margin: 0; font-size: 14px;">Use Custom Image URL</label>
             <input type="checkbox" id="input-use-url" onchange="toggleInputMode()">
         </div>
 
-        <label id="label-art-id">Level ID</label>
-        <input type="text" id="input-id" value="000000000" oninput="updateCard()">
-
-        <label id="label-art-url" style="display: none;">Custom Image URL</label>
-        <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
+        <div class="label-row">
+            <label id="label-art-id">Level ID</label>
+            <label id="label-art-url" style="display: none;">Custom Image URL</label>
+            <span class="hide-label">Hide</span>
+        </div>
+        <div class="input-row">
+            <input type="text" id="input-id" value="000000000" oninput="updateCard()">
+            <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
+            <div class="hide-box">
+                <input type="checkbox" id="hide-art" onchange="updateCard()">
+            </div>
+        </div>
         
         <label>Card Name</label>
-        <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
+        <div class="input-row">
+            <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
+            <div class="hide-box">
+                <input type="checkbox" id="hide-name" onchange="updateCard()">
+            </div>
+        </div>
         
         <label>Creator</label>
-        <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
+        <div class="input-row">
+            <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
+            <div class="hide-box">
+                <input type="checkbox" id="hide-creator" onchange="updateCard()">
+            </div>
+        </div>
         
         <label>Description</label>
-        <textarea id="input-desc" rows="3" oninput="updateCard()">CARDTEXT</textarea>
+        <div class="input-row">
+            <textarea id="input-desc" rows="3" oninput="updateCard()">CARDTEXT</textarea>
+            <div class="hide-box">
+                <input type="checkbox" id="hide-desc" onchange="updateCard()">
+            </div>
+        </div>
         
         <label>Rarity</label>
-        <select id="input-rarity" onchange="updateCard()">
-            <option value="common">Common</option>
-            <option value="uncommon">Uncommon</option>
-            <option value="rare">Rare</option>
-            <option value="epic">Epic</option>
-            <option value="legendary">Legendary</option>
-            <option value="mythic" selected>Mythic</option>
-            <option value="heavenly">Heavenly</option>
-        </select>
+        <div class="input-row">
+            <select id="input-rarity" onchange="updateCard()">
+                <option value="common">Common</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Epic</option>
+                <option value="legendary">Legendary</option>
+                <option value="mythic" selected>Mythic</option>
+                <option value="heavenly">Heavenly</option>
+            </select>
+            <div class="hide-box">
+                <input type="checkbox" id="hide-rarity" onchange="updateCard()">
+            </div>
+        </div>
 
         <div class="toggle-row">
-            <label for="input-foil">Enable Foil / RNBW Version</label>
+            <label for="input-foil" style="margin: 0; font-size: 14px;">Enable Foil / RNBW Version</label>
             <input type="checkbox" id="input-foil" onchange="updateCard()">
         </div>
 
@@ -400,6 +475,14 @@
             const rarity = document.getElementById('input-rarity').value;
             const isFoil = document.getElementById('input-foil').checked;
 
+            // Visibility State Checkboxes
+            const hideArt = document.getElementById('hide-art').checked;
+            const hideName = document.getElementById('hide-name').checked;
+            const hideCreator = document.getElementById('hide-creator').checked;
+            const hideDesc = document.getElementById('hide-desc').checked;
+            const hideRarity = document.getElementById('hide-rarity').checked;
+
+            // Apply Text and Base Logic
             document.getElementById('card-name').innerText = name || " ";
             document.getElementById('card-creator').innerText = "By " + (creator || " ");
             document.getElementById('card-desc').innerText = desc || " ";
@@ -422,12 +505,22 @@
 
             const bgElement = document.getElementById('card-bg');
             bgElement.style.backgroundImage = `url('${thumbUrl}')`;
-            bgElement.style.setProperty('--seed', id || 1); // Fallback seed rotation
+            bgElement.style.setProperty('--seed', id || 1); 
             document.getElementById('card-art').src = thumbUrl;
 
             document.getElementById('card-holo').style.display = isFoil ? 'block' : 'none';
             document.getElementById('footer-foil').style.display = isFoil ? 'flex' : 'none';
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
+
+            // Apply Visibility Hiding (Preserves Layout perfectly)
+            document.querySelector('.art').style.visibility = hideArt ? 'hidden' : 'visible';
+            document.getElementById('card-name').style.visibility = hideName ? 'hidden' : 'visible';
+            document.getElementById('card-creator').style.visibility = hideCreator ? 'hidden' : 'visible';
+            document.getElementById('card-desc').style.visibility = hideDesc ? 'hidden' : 'visible';
+            
+            // Apply Rarity Visibility Hiding to standard span + foil extra elements
+            document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
+            document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
         }
         
         function clearAllInputs() {
@@ -439,6 +532,14 @@
             document.getElementById('input-desc').value = '';
             document.getElementById('input-rarity').value = 'common';
             document.getElementById('input-foil').checked = false;
+
+            // Reset all hide checkboxes
+            document.getElementById('hide-art').checked = false;
+            document.getElementById('hide-name').checked = false;
+            document.getElementById('hide-creator').checked = false;
+            document.getElementById('hide-desc').checked = false;
+            document.getElementById('hide-rarity').checked = false;
+
             toggleInputMode(); // Triggers updateCard internally
         }
 
@@ -452,16 +553,15 @@
             btn.disabled = true;
 
             document.fonts.ready.then(() => {
-                // Pre-scale the wrapper to exact pixel dimensions to ensure identical resolution 
                 wrapper.style.transform = 'scale(1)';
                 wrapper.style.height = '1125px';
 
                 setTimeout(() => {
                     htmlToImage.toPng(cardElement, { 
                         quality: 1.0, 
-                        pixelRatio: 2, // Hardcoded multiplier. 2 = 1650x2250 crisp export.
-                        width: 825,    // Explicit width boundary
-                        height: 1125   // Explicit height boundary
+                        pixelRatio: 2, 
+                        width: 825,    
+                        height: 1125   
                     })
                     .then(function (dataUrl) {
                         wrapper.style.transform = 'scale(0.42)';
@@ -482,7 +582,7 @@
                         btn.innerText = "Download Card PNG";
                         btn.disabled = false;
                     });
-                }, 150); // Very short delay ensuring un-scaled paint completes
+                }, 150);
             });
         }
     </script>
