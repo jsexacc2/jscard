@@ -160,19 +160,30 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .btn-clear {
-            background: #ff4444 !important;
-            color: white !important;
+        
+        /* 50/50 Split Action Row */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-top: 6px;
+        }
+        .action-row button {
+            flex: 1;
             font-size: 15px !important;
             padding: 12px !important;
-            margin-top: 6px !important;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-clear {
+            background: #ff4444;
+            color: white;
         }
         .btn-import {
-            background: #4488ff !important;
-            color: white !important;
-            font-size: 15px !important;
-            padding: 12px !important;
-            margin-top: 6px !important;
+            background: #4488ff;
+            color: white;
         }
         
         /* Modal Popup Styles */
@@ -520,8 +531,12 @@
         </div>
 
         <button id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
-        <button class="btn-clear" onclick="clearAllInputs()">Clear All Inputs</button>
-        <button class="btn-import" onclick="openJsonModal()">Import JSON</button>
+        
+        <!-- Updated Flex Layout for side-by-side buttons -->
+        <div class="action-row">
+            <button class="btn-import" onclick="openJsonModal()">JSON</button>
+            <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
+        </div>
     </div>
 
     <!-- JSON Import Modal -->
@@ -579,52 +594,78 @@
     </div>
 
     <script>
-        // Modal Logic
+        // Check for Auto-Download parameters via URL on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const jsonParam = params.get('json');
+            
+            if (jsonParam) {
+                try {
+                    const data = JSON.parse(jsonParam);
+                    applyJsonData(data);
+                    
+                    // Allow a 1-second grace period for fonts and network images to load before exporting
+                    setTimeout(() => {
+                        downloadCard();
+                    }, 1000); 
+                } catch (e) {
+                    console.error("Failed to parse automated URL JSON parameters:", e);
+                }
+            }
+        });
+
+        // Modal Logic & Auto-Focus handling
         function openJsonModal() {
-            document.getElementById('json-input').value = '';
+            const jsonInput = document.getElementById('json-input');
+            jsonInput.value = '';
             document.getElementById('json-modal').style.display = 'flex';
+            
+            // Brief timeout ensures the element is fully visible before focusing
+            setTimeout(() => {
+                jsonInput.focus();
+            }, 50);
         }
 
         function closeJsonModal() {
             document.getElementById('json-modal').style.display = 'none';
         }
 
+        // Shared Mapping Logic (Optimized for reuse)
+        function applyJsonData(data) {
+            if (data["LvL-UH"] !== undefined) document.getElementById('input-use-url').checked = !!data["LvL-UH"];
+            
+            const isUrl = document.getElementById('input-use-url').checked;
+            if (isUrl) {
+                document.getElementById('input-url').value = data["LvL-IM"] || "";
+                document.getElementById('input-id').value = ""; 
+            } else {
+                document.getElementById('input-id').value = data["LvL-IM"] || "";
+                document.getElementById('input-url').value = "";
+            }
+
+            if (data["LvL-NM"] !== undefined) document.getElementById('input-name').value = data["LvL-NM"];
+            if (data["LvL-CR"] !== undefined) document.getElementById('input-creator').value = data["LvL-CR"];
+            if (data["LvL-NT"] !== undefined) document.getElementById('input-desc').value = data["LvL-NT"];
+            
+            if (data["LvL-RA"]) {
+                const r = data["LvL-RA"].toLowerCase();
+                const raritySelect = document.getElementById('input-rarity');
+                if ([...raritySelect.options].some(opt => opt.value === r)) {
+                    raritySelect.value = r;
+                }
+            }
+
+            if (data["CrD-IF"] !== undefined) document.getElementById('input-foil').checked = !!data["CrD-IF"];
+
+            toggleInputMode(); // Triggers updateCard internally
+        }
+
         function submitJson() {
             const jsonText = document.getElementById('json-input').value;
             try {
                 const data = JSON.parse(jsonText);
-
-                if (data["LvL-UH"] !== undefined) document.getElementById('input-use-url').checked = !!data["LvL-UH"];
-                
-                // Route image data to correct field based on toggle state
-                const isUrl = document.getElementById('input-use-url').checked;
-                if (isUrl) {
-                    document.getElementById('input-url').value = data["LvL-IM"] || "";
-                    document.getElementById('input-id').value = ""; 
-                } else {
-                    document.getElementById('input-id').value = data["LvL-IM"] || "";
-                    document.getElementById('input-url').value = "";
-                }
-
-                if (data["LvL-NM"] !== undefined) document.getElementById('input-name').value = data["LvL-NM"];
-                if (data["LvL-CR"] !== undefined) document.getElementById('input-creator').value = data["LvL-CR"];
-                if (data["LvL-NT"] !== undefined) document.getElementById('input-desc').value = data["LvL-NT"];
-                
-                // Map Rarity (forcing lowercase to match option values)
-                if (data["LvL-RA"]) {
-                    const r = data["LvL-RA"].toLowerCase();
-                    const raritySelect = document.getElementById('input-rarity');
-                    if ([...raritySelect.options].some(opt => opt.value === r)) {
-                        raritySelect.value = r;
-                    }
-                }
-
-                if (data["CrD-IF"] !== undefined) document.getElementById('input-foil').checked = !!data["CrD-IF"];
-
-                // Closes modal and triggers UI/Card update
+                applyJsonData(data);
                 closeJsonModal();
-                toggleInputMode();
-
             } catch (error) {
                 alert("Invalid JSON format. Please check your syntax and try again.");
             }
