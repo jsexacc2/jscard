@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Generator</title>
     
-    <!-- html-to-image library -->
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +84,7 @@
             box-sizing: border-box;
             margin: 0;
             width: auto;
-            height: 42px; /* Forces exact uniform height */
+            height: 42px; 
         }
         
         .input-row .btn-clear-field {
@@ -289,7 +290,7 @@
                 flex: 0 1 auto;
                 flex-direction: row;
                 gap: 25px;
-                padding-top: 25px; /* centers visually with input rows */
+                padding-top: 25px; 
             }
             .col-toggles .toggle-item {
                 background: transparent;
@@ -310,7 +311,7 @@
                 flex: 1.2;
                 max-width: 250px;
                 justify-content: flex-start;
-                margin-top: 15px; /* Centers buttons alongside inputs */
+                margin-top: 15px; 
                 gap: 10px;
             }
             .card-wrapper {
@@ -325,7 +326,6 @@
             transform-origin: top center;
         }
         
-        /* Mobile specific scale */
         @media (max-width: 1023px) {
             .card-wrapper {
                 transform: scale(0.42);
@@ -403,7 +403,7 @@
             display: none !important;
         }
         .header.no-creator .card-title {
-            font-size: 78px; 
+            font-size: 78px !important; /* Scale up if no creator */
         }
 
         .card-title {
@@ -414,7 +414,6 @@
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             white-space: nowrap; 
-            transition: font-size 0.2s ease;
             display: inline-block;
         }
 
@@ -611,7 +610,6 @@
             <div class="input-group">
                 <label>Description:</label>
                 <div class="input-row">
-                    <!-- Changed to input type="text" to fix mobile scaling bug -->
                     <input type="text" id="input-desc" value="CARDTEXT" oninput="updateCard()">
                     <button class="btn-clear-field" onclick="clearField('input-desc')" title="Clear Field">X</button>
                     <div class="hide-box"><input type="checkbox" id="hide-desc" onchange="updateCard()"></div>
@@ -669,7 +667,7 @@
             </div>
         </div>
 
-        <!-- PC Column 4 (Toggles) -->
+        <!-- PC Column 4 (Toggles & Settings) -->
         <div class="control-col col-toggles">
             <div class="toggle-item">
                 <label for="input-foil">RNBW:</label>
@@ -683,7 +681,26 @@
 
         <!-- PC Column 5 (Actions) -->
         <div class="control-col col-actions">
-            <button class="btn-dl" id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
+            <!-- Format & Batch Output Config -->
+            <div style="display: flex; gap: 8px; width: 100%;">
+                <div class="input-group" style="flex: 1; margin: 0;">
+                    <label style="margin-top:0; font-size: 11px;">Format:</label>
+                    <select id="input-format" style="width:100%; height:32px; font-size:12px; background:#333; color:white; border:1px solid #555; border-radius:4px;">
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="webp">WEBP</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1; margin: 0;">
+                    <label style="margin-top:0; font-size: 11px;">Batch Output:</label>
+                    <select id="input-batch-mode" style="width:100%; height:32px; font-size:12px; background:#333; color:white; border:1px solid #555; border-radius:4px;">
+                        <option value="zip">ZIP File</option>
+                        <option value="individual">Individual</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-dl" id="dl-btn" onclick="triggerDownload()">Download Card</button>
             <div class="action-row">
                 <button class="btn-import" onclick="openJsonModal()">JSON</button>
                 <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
@@ -747,14 +764,23 @@
     </div>
 
     <script>
-        // Check for Auto-Download parameters via URL on page load
+        // -------------------------------------------------------------
+        // URL API RECONSTRUCTOR (Fixes the '#' fragmentation bug)
+        // -------------------------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const jsonParam = params.get('json');
+            // Browsers truncate window.location.search if a '#' is in the URL.
+            // We combine them back together to rescue valid JSON strings.
+            const rawParamString = window.location.search + window.location.hash;
             
-            if (jsonParam) {
+            if (rawParamString.includes('json=')) {
                 try {
-                    const data = JSON.parse(jsonParam);
+                    // Extract strictly the 'json=' payload
+                    let paramsArray = rawParamString.replace('?', '').split('&');
+                    let jsonRaw = paramsArray.find(p => p.startsWith('json=')).substring(5);
+                    let decodedJson = decodeURIComponent(jsonRaw);
+                    
+                    const data = JSON.parse(decodedJson);
+                    
                     if (Array.isArray(data)) {
                         processBatch(data, true); 
                     } else {
@@ -763,13 +789,15 @@
 
                         applyJsonData(data);
                         setTimeout(() => {
-                            downloadCard().then(() => {
+                            generateCardDataUrl(data["LvL-NM"] || 'card').then(result => {
+                                triggerFileDownload(result.url, result.filename);
                                 setTimeout(() => { window.close(); }, 2500); 
                             }).catch(e => console.error(e));
                         }, 1000); 
                     }
                 } catch (e) {
                     console.error("Failed to parse automated URL JSON:", e);
+                    alert("API Error: The JSON provided in the URL is malformed or invalid.\n\nEnsure that you are wrapping your JSON payload in encodeURIComponent() before attaching it to the URL.");
                 }
             }
         });
@@ -835,7 +863,7 @@
         }
 
         // -------------------------------------------------------------
-        // BATCH RENDERING SYSTEM
+        // BATCH RENDERING SYSTEM (ZIP & Individual Support)
         // -------------------------------------------------------------
         async function processBatch(arr, isAuto = false) {
             document.getElementById('main-controls').style.display = 'none';
@@ -852,21 +880,43 @@
                 document.body.appendChild(statusText);
             }
 
+            const batchMode = document.getElementById('input-batch-mode').value;
+            let zip = null;
+            if (batchMode === 'zip') {
+                zip = new JSZip();
+            }
+
             for (let i = 0; i < arr.length; i++) {
                 statusText.innerText = `Batch Processing: Rendering Card ${i + 1} of ${arr.length}...`;
                 applyJsonData(arr[i]);
                 
-                await new Promise(r => setTimeout(r, 1200));
+                await new Promise(r => setTimeout(r, 800)); // Wait for DOM bounds & Images
                 
                 try {
-                    await downloadCard(arr[i]["LvL-NM"] || `card_${i+1}`);
+                    const result = await generateCardDataUrl(arr[i]["LvL-NM"] || `card_${i+1}`);
+                    
+                    if (batchMode === 'zip') {
+                        // Extract base64 payload by stripping "data:image/png;base64," header
+                        const base64Data = result.url.split(',')[1];
+                        zip.file(result.filename, base64Data, {base64: true});
+                    } else {
+                        triggerFileDownload(result.url, result.filename);
+                        await new Promise(r => setTimeout(r, 600)); // Wait for browser Save As hook
+                    }
                 } catch (e) {
                     console.error(`Failed to export card ${i+1}`, e);
                 }
-                
-                await new Promise(r => setTimeout(r, 800)); 
             }
             
+            if (batchMode === 'zip') {
+                statusText.innerText = `Compressing ${arr.length} cards into ZIP file...`;
+                const zipBlob = await zip.generateAsync({type: "blob"});
+                const zipUrl = URL.createObjectURL(zipBlob);
+                triggerFileDownload(zipUrl, "Batch_Export.zip");
+                // Cleanup URL memory after a few seconds
+                setTimeout(() => URL.revokeObjectURL(zipUrl), 10000);
+            }
+
             statusText.innerText = `Batch Complete! Processed ${arr.length} cards.`;
             
             if (isAuto) {
@@ -885,7 +935,6 @@
             const jsonInput = document.getElementById('json-input');
             jsonInput.value = '';
             document.getElementById('json-modal').style.display = 'flex';
-            
             setTimeout(() => { jsonInput.focus(); }, 50);
         }
 
@@ -918,7 +967,6 @@
                     raritySelect.value = r;
                 }
             }
-
             if (data["CrD-IF"] !== undefined) document.getElementById('input-foil').checked = !!data["CrD-IF"];
 
             toggleInputMode(); 
@@ -978,8 +1026,17 @@
             const hideDesc = document.getElementById('hide-desc').checked;
             const hideRarity = document.getElementById('hide-rarity').checked;
 
-            document.getElementById('card-name').innerText = name || " ";
-            document.getElementById('card-creator').innerText = "By " + (creator || " ");
+            const titleEl = document.getElementById('card-name');
+            const creatorEl = document.getElementById('card-creator');
+
+            // Reset fonts prior to width detection
+            titleEl.style.fontSize = hideCreator ? '78px' : '60px';
+            titleEl.style.transform = 'translate(0, 0)';
+            creatorEl.style.fontSize = '24px';
+            creatorEl.style.transform = 'translate(0, 0)';
+
+            titleEl.innerText = name || " ";
+            creatorEl.innerText = "By " + (creator || " ");
             document.getElementById('card-series').innerText = series || " ";
             document.getElementById('card-desc').innerText = desc || " ";
             
@@ -991,12 +1048,7 @@
                 span.setAttribute('data-text', formattedRarity); 
             });
 
-            let thumbUrl = '';
-            if (useUrl) {
-                thumbUrl = urlInput;
-            } else {
-                thumbUrl = id ? `https://levelthumbs.prevter.me/thumbnail/${id}` : '';
-            }
+            let thumbUrl = useUrl ? urlInput : (id ? `https://levelthumbs.prevter.me/thumbnail/${id}` : '');
 
             const bgElement = document.getElementById('card-bg');
             bgElement.style.backgroundImage = `url('${thumbUrl}')`;
@@ -1008,9 +1060,8 @@
             document.getElementById('footer-normal').style.display = isFoil ? 'none' : 'flex';
 
             document.querySelector('.art').style.visibility = hideArt ? 'hidden' : 'visible';
-            document.getElementById('card-name').style.visibility = hideName ? 'hidden' : 'visible';
+            titleEl.style.visibility = hideName ? 'hidden' : 'visible';
             document.getElementById('card-desc').style.visibility = hideDesc ? 'hidden' : 'visible';
-            
             document.getElementById('series-container').style.display = hideSeries ? 'none' : 'flex';
 
             const headerElement = document.querySelector('.header');
@@ -1019,6 +1070,19 @@
             
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
+
+            // Measure & Auto-Scale Overflowing Fonts
+            const maxTextWidth = 760; 
+            
+            if (titleEl.offsetWidth > maxTextWidth) {
+                const targetSize = hideCreator ? 78 : 60;
+                const scale = maxTextWidth / titleEl.offsetWidth;
+                titleEl.style.fontSize = Math.floor(targetSize * scale) + 'px';
+            }
+            if (!hideCreator && creatorEl.offsetWidth > maxTextWidth) {
+                const scale = maxTextWidth / creatorEl.offsetWidth;
+                creatorEl.style.fontSize = Math.floor(24 * scale) + 'px';
+            }
 
             setTimeout(() => {
                 pixelCenterElement(document.getElementById('card-name'));
@@ -1033,11 +1097,8 @@
                 
                 const wrapper = document.getElementById('desc-wrapper');
                 const warning = document.getElementById('overflow-warning');
-                if (wrapper.scrollHeight > wrapper.clientHeight + 2) {
-                    warning.style.display = 'block';
-                } else {
-                    warning.style.display = 'none';
-                }
+                if (wrapper.scrollHeight > wrapper.clientHeight + 2) warning.style.display = 'block';
+                else warning.style.display = 'none';
             }, 10);
         }
         
@@ -1051,6 +1112,8 @@
             document.getElementById('input-desc').value = '';
             document.getElementById('input-rarity').value = 'common';
             document.getElementById('input-foil').checked = false;
+            document.getElementById('input-format').value = 'png';
+            document.getElementById('input-batch-mode').value = 'zip';
 
             document.getElementById('hide-art').checked = false;
             document.getElementById('hide-name').checked = false;
@@ -1062,17 +1125,40 @@
             toggleInputMode(); 
         }
 
-        function downloadCard(filenameOverride = null) {
+        // Handles the UI button click
+        function triggerDownload() {
+            const btn = document.getElementById('dl-btn');
+            btn.innerText = "Rendering...";
+            btn.disabled = true;
+
+            const filename = document.getElementById('input-name').value || 'card';
+            generateCardDataUrl(filename).then(result => {
+                triggerFileDownload(result.url, result.filename);
+                btn.innerText = "Download Card";
+                btn.disabled = false;
+            }).catch(e => {
+                alert("Export failed: " + e);
+                btn.innerText = "Download Card";
+                btn.disabled = false;
+            });
+        }
+
+        // Converts URL to file download
+        function triggerFileDownload(url, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Generates the actual Data URL (PNG, JPEG, WEBP)
+        function generateCardDataUrl(baseFilename) {
             return new Promise((resolve, reject) => {
                 const cardElement = document.getElementById('trading-card');
                 const wrapper = document.querySelector('.card-wrapper');
-                const originalName = filenameOverride || document.getElementById('input-name').value || 'card';
-                const btn = document.getElementById('dl-btn');
-
-                if(btn) {
-                    btn.innerText = "Rendering Card...";
-                    btn.disabled = true;
-                }
+                const format = document.getElementById('input-format').value;
 
                 document.fonts.ready.then(() => {
                     const originalTransform = wrapper.style.transform;
@@ -1081,38 +1167,32 @@
                     wrapper.style.transform = 'scale(1)';
                     wrapper.style.height = '1125px';
 
-                    setTimeout(() => {
-                        htmlToImage.toPng(cardElement, { 
-                            quality: 1.0, 
-                            pixelRatio: 2, 
-                            width: 825,    
-                            height: 1125   
-                        })
-                        .then(function (dataUrl) {
+                    setTimeout(async () => {
+                        try {
+                            const ext = (format === 'jpeg') ? 'jpg' : format;
+                            const filename = `${baseFilename}.${ext}`;
+                            let dataUrl = "";
+
+                            if (format === 'png') {
+                                dataUrl = await htmlToImage.toPng(cardElement, { quality: 1.0, pixelRatio: 2, width: 825, height: 1125 });
+                            } else if (format === 'jpeg') {
+                                dataUrl = await htmlToImage.toJpeg(cardElement, { quality: 0.95, pixelRatio: 2, width: 825, height: 1125, backgroundColor: '#000000' });
+                            } else if (format === 'webp') {
+                                // WEBP requires converting through a canvas buffer
+                                const canvas = await htmlToImage.toCanvas(cardElement, { pixelRatio: 2, width: 825, height: 1125, backgroundColor: '#000000' });
+                                dataUrl = canvas.toDataURL('image/webp', 1.0);
+                            }
+                            
                             wrapper.style.transform = originalTransform;
                             wrapper.style.height = originalHeight;
+                            
+                            resolve({ url: dataUrl, filename: filename });
 
-                            const link = document.createElement('a');
-                            link.download = originalName + '.png';
-                            link.href = dataUrl;
-                            link.click();
-
-                            if(btn) {
-                                btn.innerText = "Download Card PNG";
-                                btn.disabled = false;
-                            }
-                            resolve(); 
-                        })
-                        .catch(function (error) {
+                        } catch (error) {
                             wrapper.style.transform = originalTransform;
                             wrapper.style.height = originalHeight;
-                            alert("Export failed: " + error);
-                            if(btn) {
-                                btn.innerText = "Download Card PNG";
-                                btn.disabled = false;
-                            }
                             reject(error);
-                        });
+                        }
                     }, 150); 
                 });
             });
