@@ -186,7 +186,21 @@
             background: #4488ff;
             color: white;
         }
+
+        #overflow-warning {
+            display: none;
+            background: #ffaa00;
+            color: #000;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            border: 2px solid #cc8800;
+        }
         
+        /* Modal Popup Styles */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -201,7 +215,7 @@
             padding: 25px;
             border-radius: 12px;
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
             border: 2px solid #444;
             box-shadow: 0 10px 30px rgba(0,0,0,0.9);
             display: flex;
@@ -250,7 +264,6 @@
         .card {
             width: 825px;
             height: 1125px;
-            padding: 25px;
             font-size: 40px;
             color: #000000;
             border: 6px solid transparent;
@@ -298,6 +311,7 @@
         .header {
             background: linear-gradient(to bottom, rgba(30,30,30,0.6), rgba(10,10,10,0.6));
             border: 2px solid rgba(255, 255, 255, 0.5);
+            border-bottom: none;
             color: #FFFFFF;
             height: 138px;
             padding: 25px 20px 21px 20px; 
@@ -329,6 +343,7 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             white-space: nowrap; 
             transition: font-size 0.2s ease;
+            display: inline-block; /* Essential for dynamic transform */
         }
 
         .card-creator {
@@ -337,17 +352,31 @@
             line-height: 1;
             margin: 0;
             white-space: nowrap;
+            display: inline-block;
         }
 
         .art {
-            height: 600px;
+            height: 530px; /* Fixed Height Layout */
+            width: 100%;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            border-left: 25px solid transparent; /* Mimicking internal card padding */
+            border-right: 25px solid transparent;
+            box-sizing: border-box;
+        }
+
+        .art-inner {
+            width: 100%;
+            height: 100%;
             border: 4px solid #FFFFFF;
             box-shadow: 0px 6px 15px rgba(0,0,0,0.6);
-            flex: 1;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .art img {
@@ -364,11 +393,50 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
-            padding: 32px 25px 20px 25px; 
+            padding: 25px; 
+            height: 445px; /* (1125 - 138 - 530 - 12 (border)) */
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
             box-shadow: inset 0px 4px 10px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+
+        /* Fixed dimension wrappers to guarantee wrap consistency */
+        .desc-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+            width: 763px; /* Exact internal width to prevent fractional resize issues */
+            overflow: hidden;
+        }
+
+        .series-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .series-text {
+            font-family: "Montserrat", sans-serif;
+            color: #FFFFFF;
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
+            display: inline-block;
+        }
+
+        .series-divider {
+            width: 85%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            border: none;
+            margin: 0;
         }
 
         .description-text {
@@ -377,9 +445,12 @@
             text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
             font-size: 40px;
             padding: 0;
-            margin: 0 0 25px 0;
+            margin: 0;
             text-align: center;
             font-style: italic;
+            width: 100%;
+            white-space: pre-wrap; 
+            overflow-wrap: break-word;
         }
 
         .card-footer-line {
@@ -387,12 +458,19 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 12px;
+            padding-top: 15px;
+            padding-bottom: 5px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
             width: 100%;
             box-sizing: border-box;
+            margin-top: auto;
+            height: 50px;
+        }
+
+        .card-footer-line span {
+            display: inline-block; /* Required for transform centering */
         }
 
         .footer-normal { font-size: 28px; }
@@ -498,6 +576,15 @@
                 <input type="checkbox" id="hide-creator" onchange="updateCard()">
             </div>
         </div>
+
+        <label>Release Series</label>
+        <div class="input-row">
+            <input type="text" id="input-series" value="Release Pack #1" oninput="updateCard()">
+            <button class="btn-clear-field" onclick="clearField('input-series')" title="Clear Field">X</button>
+            <div class="hide-box">
+                <input type="checkbox" id="hide-series" onchange="updateCard()">
+            </div>
+        </div>
         
         <label>Description</label>
         <div class="input-row">
@@ -536,21 +623,16 @@
             <button class="btn-import" onclick="openJsonModal()">JSON</button>
             <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
         </div>
+
+        <!-- Overflow Warning -->
+        <div id="overflow-warning">⚠️ Warning: Text exceeds card boundaries.</div>
     </div>
 
     <!-- JSON Import Modal -->
     <div id="json-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>Import Card Data</h3>
-            <textarea id="json-input" rows="10" placeholder='{
-  "LvL-UH": false,
-  "LvL-IM": "10101010",
-  "LvL-NM": "MY LEVEL",
-  "LvL-CR": "CreatorName",
-  "LvL-NT": "Level description here",
-  "LvL-RA": "epic",
-  "CrD-IF": false
-}'></textarea>
+            <textarea id="json-input" rows="12" placeholder='Paste a single JSON object or a JSON array [ {...}, {...} ] for batch rendering.'></textarea>
             <div class="modal-buttons">
                 <button class="btn-modal-submit" onclick="submitJson()">Submit</button>
                 <button class="btn-modal-cancel" onclick="closeJsonModal()">Cancel</button>
@@ -569,23 +651,33 @@
             </div>
             
             <div class="art">
-                <img src="https://levelthumbs.prevter.me/thumbnail/000000000" id="card-art" alt="Card Art" crossorigin="anonymous" />
+                <div class="art-inner">
+                    <img src="https://levelthumbs.prevter.me/thumbnail/000000000" id="card-art" alt="Card Art" crossorigin="anonymous" />
+                </div>
             </div>
             
             <div class="description-box">
-                <div class="description-text" id="card-desc">CARDTEXT</div>
+                <div class="desc-content-wrapper" id="desc-wrapper">
+                    
+                    <div class="series-container" id="series-container">
+                        <span class="series-text" id="card-series">Release Pack #1</span>
+                        <div class="series-divider"></div>
+                    </div>
+
+                    <div class="description-text" id="card-desc">CARDTEXT</div>
+                </div>
                 
                 <div class="card-footer-line footer-normal" id="footer-normal">
-                    <span>Jolly's Level Cards</span>
-                    <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
+                    <span id="footer-jolly">Jolly's Level Cards</span>
+                    <span class="rarity-mythic card-rarity" data-text="Mythic" id="footer-rarity">Mythic</span>
                 </div>
 
                 <div class="card-footer-line footer-foil" id="footer-foil">
-                    <span>JOLLY'S LEVEL CARDS</span>
+                    <span id="footer-foil-jolly">JOLLY'S LEVEL CARDS</span>
                     <div class="footer-right">
-                        <span class="rarity-mythic card-rarity" data-text="Mythic">Mythic</span>
-                        <span>&</span>
-                        <span class="rnbw">RNBW</span>
+                        <span class="rarity-mythic card-rarity" data-text="Mythic" id="footer-foil-rarity">Mythic</span>
+                        <span id="footer-foil-amp">&</span>
+                        <span class="rnbw" id="footer-foil-rnbw">RNBW</span>
                     </div>
                 </div>
             </div>
@@ -599,39 +691,132 @@
             const jsonParam = params.get('json');
             
             if (jsonParam) {
-                // HIDE UI FOR API RENDER: Collapses controls, flexbox centers the card automatically
-                document.getElementById('main-controls').style.display = 'none';
-                document.body.style.justifyContent = 'center';
-
                 try {
                     const data = JSON.parse(jsonParam);
-                    applyJsonData(data);
-                    
-                    setTimeout(() => {
-                        downloadCard().then(() => {
-                            // 2.5s buffer guarantees the download registers before tab death
-                            setTimeout(() => {
-                                window.close();
-                            }, 2500); 
+                    if (Array.isArray(data)) {
+                        processBatch(data, true); 
+                    } else {
+                        document.getElementById('main-controls').style.display = 'none';
+                        document.body.style.justifyContent = 'center';
 
-                        }).catch(e => {
-                            console.error("Error rendering card:", e);
-                        });
-                    }, 1000); 
+                        applyJsonData(data);
+                        setTimeout(() => {
+                            downloadCard().then(() => {
+                                setTimeout(() => { window.close(); }, 2500); 
+                            }).catch(e => console.error(e));
+                        }, 1000); 
+                    }
                 } catch (e) {
-                    console.error("Failed to parse automated URL JSON parameters:", e);
+                    console.error("Failed to parse automated URL JSON:", e);
                 }
             }
         });
 
+        // -------------------------------------------------------------
+        // DYNAMIC PIXEL CENTERING ALGORITHM
+        // Corrects fonts with inaccurate internal bounding boxes (Pusab)
+        // -------------------------------------------------------------
+        function pixelCenterElement(el) {
+            if (!el || el.innerText.trim() === '' || window.getComputedStyle(el).display === 'none') return;
+            
+            // Reset transform before measuring
+            el.style.transform = 'translateY(0px)';
+            
+            const compStyle = window.getComputedStyle(el);
+            const fontString = `${compStyle.fontWeight} ${compStyle.fontSize} ${compStyle.fontFamily}`;
+            const fontSize = parseFloat(compStyle.fontSize);
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            canvas.width = 1200;
+            canvas.height = Math.ceil(fontSize * 3); 
+            const drawY = Math.ceil(fontSize); 
+            
+            ctx.font = fontString;
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = 'white';
+            ctx.fillText(el.innerText, 50, drawY);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            let top = -1, bottom = -1;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    if (data[(y * canvas.width + x) * 4 + 3] > 10) {
+                        if (top === -1) top = y;
+                        bottom = y;
+                    }
+                }
+            }
+            
+            if (top !== -1) {
+                const visualCenter = top + (bottom - top) / 2;
+                const logicalCenter = drawY + (fontSize / 2);
+                let offset = logicalCenter - visualCenter;
+                
+                offset = Math.round(offset * 10) / 10;
+                el.style.transform = `translateY(${offset}px)`;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // BATCH RENDERING SYSTEM
+        // -------------------------------------------------------------
+        async function processBatch(arr, isAuto = false) {
+            document.getElementById('main-controls').style.display = 'none';
+            document.body.style.justifyContent = 'center';
+            
+            let statusText = document.getElementById('api-status-text');
+            if(!statusText) {
+                statusText = document.createElement('h2');
+                statusText.id = 'api-status-text';
+                statusText.style.color = '#00ff66';
+                statusText.style.position = 'absolute';
+                statusText.style.top = '20px';
+                statusText.style.fontFamily = '"Montserrat", sans-serif';
+                document.body.appendChild(statusText);
+            }
+
+            for (let i = 0; i < arr.length; i++) {
+                statusText.innerText = `Batch Processing: Rendering Card ${i + 1} of ${arr.length}...`;
+                applyJsonData(arr[i]);
+                
+                // Wait for DOM, fonts, Canvas offsets, and images to settle
+                await new Promise(r => setTimeout(r, 1200));
+                
+                try {
+                    await downloadCard(arr[i]["LvL-NM"] || `card_${i+1}`);
+                } catch (e) {
+                    console.error(`Failed to export card ${i+1}`, e);
+                }
+                
+                // Allow browser download manager to register file payload before advancing
+                await new Promise(r => setTimeout(r, 800)); 
+            }
+            
+            statusText.innerText = `Batch Complete! Processed ${arr.length} cards.`;
+            
+            if (isAuto) {
+                statusText.innerText += ' Tab closing in 2.5 seconds.';
+                setTimeout(() => window.close(), 2500);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('main-controls').style.display = 'flex';
+                    document.body.style.justifyContent = 'flex-start';
+                    if(statusText) statusText.remove();
+                }, 3000);
+            }
+        }
+
+        // Modal Logic
         function openJsonModal() {
             const jsonInput = document.getElementById('json-input');
             jsonInput.value = '';
             document.getElementById('json-modal').style.display = 'flex';
             
-            setTimeout(() => {
-                jsonInput.focus();
-            }, 50);
+            setTimeout(() => { jsonInput.focus(); }, 50);
         }
 
         function closeJsonModal() {
@@ -639,6 +824,7 @@
         }
 
         function applyJsonData(data) {
+            if (!data) return;
             if (data["LvL-UH"] !== undefined) document.getElementById('input-use-url').checked = !!data["LvL-UH"];
             
             const isUrl = document.getElementById('input-use-url').checked;
@@ -653,6 +839,7 @@
             if (data["LvL-NM"] !== undefined) document.getElementById('input-name').value = data["LvL-NM"];
             if (data["LvL-CR"] !== undefined) document.getElementById('input-creator').value = data["LvL-CR"];
             if (data["LvL-NT"] !== undefined) document.getElementById('input-desc').value = data["LvL-NT"];
+            if (data["CrD-RS"] !== undefined) document.getElementById('input-series').value = data["CrD-RS"];
             
             if (data["LvL-RA"]) {
                 const r = data["LvL-RA"].toLowerCase();
@@ -671,8 +858,12 @@
             const jsonText = document.getElementById('json-input').value;
             try {
                 const data = JSON.parse(jsonText);
-                applyJsonData(data);
                 closeJsonModal();
+                if (Array.isArray(data)) {
+                    processBatch(data);
+                } else {
+                    applyJsonData(data);
+                }
             } catch (error) {
                 alert("Invalid JSON format. Please check your syntax and try again.");
             }
@@ -692,11 +883,8 @@
         function clearField(fieldId) {
             const field = document.getElementById(fieldId);
             if(field) {
-                if(field.tagName === 'SELECT') {
-                    field.value = 'common'; 
-                } else {
-                    field.value = '';
-                }
+                if(field.tagName === 'SELECT') field.value = 'common'; 
+                else field.value = '';
                 updateCard();
             }
         }
@@ -708,6 +896,7 @@
             
             const name = document.getElementById('input-name').value;
             const creator = document.getElementById('input-creator').value;
+            const series = document.getElementById('input-series').value;
             const desc = document.getElementById('input-desc').value;
             const rarity = document.getElementById('input-rarity').value;
             const isFoil = document.getElementById('input-foil').checked;
@@ -715,11 +904,13 @@
             const hideArt = document.getElementById('hide-art').checked;
             const hideName = document.getElementById('hide-name').checked;
             const hideCreator = document.getElementById('hide-creator').checked;
+            const hideSeries = document.getElementById('hide-series').checked;
             const hideDesc = document.getElementById('hide-desc').checked;
             const hideRarity = document.getElementById('hide-rarity').checked;
 
             document.getElementById('card-name').innerText = name || " ";
             document.getElementById('card-creator').innerText = "By " + (creator || " ");
+            document.getElementById('card-series').innerText = series || " ";
             document.getElementById('card-desc').innerText = desc || " ";
             
             const formattedRarity = rarity ? (rarity.charAt(0).toUpperCase() + rarity.slice(1)) : 'Common';
@@ -750,15 +941,36 @@
             document.getElementById('card-name').style.visibility = hideName ? 'hidden' : 'visible';
             document.getElementById('card-desc').style.visibility = hideDesc ? 'hidden' : 'visible';
             
+            document.getElementById('series-container').style.display = hideSeries ? 'none' : 'flex';
+
             const headerElement = document.querySelector('.header');
-            if (hideCreator) {
-                headerElement.classList.add('no-creator');
-            } else {
-                headerElement.classList.remove('no-creator');
-            }
+            if (hideCreator) headerElement.classList.add('no-creator');
+            else headerElement.classList.remove('no-creator');
             
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
+
+            // Apply dynamic rendering adjustments 
+            setTimeout(() => {
+                pixelCenterElement(document.getElementById('card-name'));
+                pixelCenterElement(document.getElementById('card-creator'));
+                pixelCenterElement(document.getElementById('card-series'));
+                pixelCenterElement(document.getElementById('footer-jolly'));
+                pixelCenterElement(document.getElementById('footer-rarity'));
+                pixelCenterElement(document.getElementById('footer-foil-jolly'));
+                pixelCenterElement(document.getElementById('footer-foil-rarity'));
+                pixelCenterElement(document.getElementById('footer-foil-amp'));
+                pixelCenterElement(document.getElementById('footer-foil-rnbw'));
+                
+                // Overflow Detection
+                const wrapper = document.getElementById('desc-wrapper');
+                const warning = document.getElementById('overflow-warning');
+                if (wrapper.scrollHeight > wrapper.clientHeight + 2) {
+                    warning.style.display = 'block';
+                } else {
+                    warning.style.display = 'none';
+                }
+            }, 10);
         }
         
         function clearAllInputs() {
@@ -767,6 +979,7 @@
             document.getElementById('input-url').value = '';
             document.getElementById('input-name').value = '';
             document.getElementById('input-creator').value = '';
+            document.getElementById('input-series').value = '';
             document.getElementById('input-desc').value = '';
             document.getElementById('input-rarity').value = 'common';
             document.getElementById('input-foil').checked = false;
@@ -774,17 +987,18 @@
             document.getElementById('hide-art').checked = false;
             document.getElementById('hide-name').checked = false;
             document.getElementById('hide-creator').checked = false;
+            document.getElementById('hide-series').checked = false;
             document.getElementById('hide-desc').checked = false;
             document.getElementById('hide-rarity').checked = false;
 
             toggleInputMode(); 
         }
 
-        function downloadCard() {
+        function downloadCard(filenameOverride = null) {
             return new Promise((resolve, reject) => {
                 const cardElement = document.getElementById('trading-card');
                 const wrapper = document.querySelector('.card-wrapper');
-                const originalName = document.getElementById('input-name').value || 'card';
+                const originalName = filenameOverride || document.getElementById('input-name').value || 'card';
                 const btn = document.getElementById('dl-btn');
 
                 if(btn) {
@@ -828,7 +1042,7 @@
                             }
                             reject(error);
                         });
-                    }, 150);
+                    }, 150); // Small buffer for CSS transforms to stick
                 });
             });
         }
