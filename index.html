@@ -31,6 +31,8 @@
             min-height: 100vh; 
             box-sizing: border-box;
         }
+
+        /* ----- Base / Mobile Layout ----- */
         .controls {
             width: 100%;
             max-width: 400px;
@@ -41,44 +43,36 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 12px;
         }
         
-        .controls > label {
-            display: block;
-            font-size: 14px;
-            font-weight: 700;
-            margin-top: 12px;
-            margin-bottom: 4px;
-        }
-        .label-row {
+        .control-col {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 12px;
+            flex-direction: column;
+            width: 100%;
+            gap: 4px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 10px;
             margin-bottom: 4px;
         }
-        .label-row label {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .hide-label {
-            width: 44px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 700;
-            margin: 0;
-        }
+
         .input-row {
             display: flex;
             gap: 8px;
-            margin-bottom: 8px;
             align-items: stretch;
         }
+        
         .input-row input[type="text"], 
-        .input-row select, 
-        .input-row textarea {
+        .input-row select {
             flex: 1;
             padding: 10px;
             background: #333;
@@ -89,9 +83,7 @@
             box-sizing: border-box;
             margin: 0;
             width: auto;
-        }
-        .input-row textarea {
-            resize: vertical;
+            height: 42px; /* Forces exact uniform height */
         }
         
         .input-row .btn-clear-field {
@@ -99,9 +91,9 @@
             color: white !important;
             border: none !important;
             border-radius: 6px !important;
-            width: 38px !important;
-            min-width: 38px !important;
-            height: auto !important;
+            width: 42px !important;
+            min-width: 42px !important;
+            height: 42px !important;
             font-family: inherit !important;
             font-weight: 900 !important;
             font-size: 16px !important;
@@ -119,7 +111,8 @@
         }
 
         .hide-box {
-            width: 44px;
+            width: 42px;
+            height: 42px;
             background: #333;
             border: 1px solid #555;
             border-radius: 6px;
@@ -127,6 +120,7 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-sizing: border-box;
         }
         .hide-box input[type="checkbox"] {
             transform: scale(1.5);
@@ -134,40 +128,50 @@
             margin: 0;
         }
 
-        .toggle-row {
+        .col-toggles {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .toggle-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: #2a2a2a;
             padding: 12px;
             border-radius: 6px;
-            margin: 12px 0 8px 0;
+            margin: 4px 0;
             font-weight: bold;
             font-size: 14px;
         }
-        .toggle-row input[type="checkbox"] {
+        .toggle-item input[type="checkbox"] {
             transform: scale(1.5);
             margin-right: 10px;
         }
 
-        .controls > button {
+        .col-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-dl {
             width: 100%;
             padding: 15px;
             background: #00ff66;
             color: black;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 10px;
         }
         
         .action-row {
             display: flex;
             gap: 10px;
             width: 100%;
-            margin-top: 6px;
         }
         .action-row button {
             flex: 1;
@@ -178,14 +182,8 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .btn-clear {
-            background: #ff4444;
-            color: white;
-        }
-        .btn-import {
-            background: #4488ff;
-            color: white;
-        }
+        .btn-clear { background: #ff4444; color: white; }
+        .btn-import { background: #4488ff; color: white; }
 
         #overflow-warning {
             display: none;
@@ -193,7 +191,7 @@
             color: #000;
             padding: 12px;
             border-radius: 6px;
-            margin-top: 15px;
+            margin-top: 5px;
             font-weight: bold;
             text-align: center;
             font-size: 14px;
@@ -255,10 +253,84 @@
         .btn-modal-submit { background: #4488ff; color: white; }
         .btn-modal-cancel { background: #555; color: white; }
 
+        /* ----- PC Top Bar Layout Override ----- */
+        @media (min-width: 1024px) {
+            body {
+                overflow: hidden;
+                justify-content: flex-start;
+                padding: 0;
+            }
+            .controls {
+                flex-direction: row;
+                width: 100%;
+                max-width: none;
+                border-radius: 0;
+                padding: 15px 30px;
+                margin-bottom: 0;
+                background: #1a1a1a;
+                border-bottom: 2px solid #000;
+                gap: 25px;
+                justify-content: center;
+                align-items: flex-start; 
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                z-index: 10;
+            }
+            .control-col {
+                flex: 1;
+                max-width: 300px;
+                gap: 10px;
+                margin: 0;
+            }
+            .input-group label {
+                margin-top: 0;
+                margin-bottom: 6px;
+            }
+            .col-toggles {
+                flex: 0 1 auto;
+                flex-direction: row;
+                gap: 25px;
+                padding-top: 25px; /* centers visually with input rows */
+            }
+            .col-toggles .toggle-item {
+                background: transparent;
+                padding: 0;
+                margin: 0;
+                flex-direction: column;
+                gap: 12px;
+                align-items: center;
+            }
+            .col-toggles .toggle-item label {
+                margin: 0;
+            }
+            .col-toggles .toggle-item input[type="checkbox"] {
+                margin: 0;
+                transform: scale(2.0);
+            }
+            .col-actions {
+                flex: 1.2;
+                max-width: 250px;
+                justify-content: flex-start;
+                margin-top: 15px; /* Centers buttons alongside inputs */
+                gap: 10px;
+            }
+            .card-wrapper {
+                margin-top: 4vh; 
+                transform: scale(0.65);
+                height: 731px; 
+            }
+        }
+
+        /* ----- Card Layout Base ----- */
         .card-wrapper {
-            transform: scale(0.42);
             transform-origin: top center;
-            height: 480px; 
+        }
+        
+        /* Mobile specific scale */
+        @media (max-width: 1023px) {
+            .card-wrapper {
+                transform: scale(0.42);
+                height: 480px; 
+            }
         }
 
         .card {
@@ -351,7 +423,7 @@
             font-size: 24px;
             line-height: 1;
             margin: 0;
-            margin-top: -12px; /* Reduces visual gap to requested ~12px */
+            margin-top: -4px;
             white-space: nowrap;
             display: inline-block;
         }
@@ -382,7 +454,7 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
-            padding: 25px; 
+            padding: 0 25px; 
             height: 407px; 
             display: flex;
             flex-direction: column;
@@ -406,10 +478,9 @@
             justify-content: center;
             align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            height: 50px;
+            height: 75px;
             width: 100%;
             box-sizing: border-box;
-            margin-bottom: 15px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -421,6 +492,7 @@
             text-align: center;
             text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
             display: inline-block;
+            white-space: nowrap; 
         }
 
         .description-text {
@@ -442,7 +514,7 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            height: 50px;
+            height: 75px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -522,92 +594,103 @@
 <body>
 
     <div class="controls" id="main-controls">
-        <div class="toggle-row" style="margin-top: 0;">
-            <label for="input-use-url" style="margin: 0; font-size: 14px;">Use Custom Image URL</label>
-            <input type="checkbox" id="input-use-url" onchange="toggleInputMode()">
-        </div>
-
-        <div class="label-row">
-            <label id="label-art-id">Level ID</label>
-            <label id="label-art-url" style="display: none;">Custom Image URL</label>
-            <span class="hide-label">Hide</span>
-        </div>
-        <div class="input-row">
-            <input type="text" id="input-id" value="000000000" oninput="updateCard()">
-            <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
-            <button class="btn-clear-field" onclick="clearField('input-id'); clearField('input-url');" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-art" onchange="updateCard()">
-            </div>
-        </div>
         
-        <label>Card Name</label>
-        <div class="input-row">
-            <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
-            <button class="btn-clear-field" onclick="clearField('input-name')" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-name" onchange="updateCard()">
+        <!-- PC Column 1 -->
+        <div class="control-col">
+            <div class="input-group">
+                <label id="label-art-id">Level ID:</label>
+                <label id="label-art-url" style="display: none;">Image URL:</label>
+                <div class="input-row">
+                    <input type="text" id="input-id" value="000000000" oninput="updateCard()">
+                    <input type="text" id="input-url" style="display: none;" placeholder="https://..." oninput="updateCard()">
+                    <button class="btn-clear-field" onclick="clearField('input-id'); clearField('input-url');" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-art" onchange="updateCard()"></div>
+                </div>
             </div>
-        </div>
-        
-        <label>Creator</label>
-        <div class="input-row">
-            <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
-            <button class="btn-clear-field" onclick="clearField('input-creator')" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-creator" onchange="updateCard()">
+            
+            <div class="input-group">
+                <label>Description:</label>
+                <div class="input-row">
+                    <!-- Changed to input type="text" to fix mobile scaling bug -->
+                    <input type="text" id="input-desc" value="CARDTEXT" oninput="updateCard()">
+                    <button class="btn-clear-field" onclick="clearField('input-desc')" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-desc" onchange="updateCard()"></div>
+                </div>
             </div>
         </div>
 
-        <label>Release Series</label>
-        <div class="input-row">
-            <input type="text" id="input-series" value="Release Pack #1" oninput="updateCard()">
-            <button class="btn-clear-field" onclick="clearField('input-series')" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-series" onchange="updateCard()">
+        <!-- PC Column 2 -->
+        <div class="control-col">
+            <div class="input-group">
+                <label>Level Name:</label>
+                <div class="input-row">
+                    <input type="text" id="input-name" value="LVLNAME" oninput="updateCard()">
+                    <button class="btn-clear-field" onclick="clearField('input-name')" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-name" onchange="updateCard()"></div>
+                </div>
             </div>
-        </div>
-        
-        <label>Description</label>
-        <div class="input-row">
-            <textarea id="input-desc" rows="3" oninput="updateCard()">CARDTEXT</textarea>
-            <button class="btn-clear-field" onclick="clearField('input-desc')" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-desc" onchange="updateCard()">
-            </div>
-        </div>
-        
-        <label>Rarity</label>
-        <div class="input-row">
-            <select id="input-rarity" onchange="updateCard()">
-                <option value="common">Common</option>
-                <option value="uncommon">Uncommon</option>
-                <option value="rare">Rare</option>
-                <option value="epic">Epic</option>
-                <option value="legendary">Legendary</option>
-                <option value="mythic" selected>Mythic</option>
-                <option value="heavenly">Heavenly</option>
-            </select>
-            <button class="btn-clear-field" onclick="clearField('input-rarity')" title="Clear Field">X</button>
-            <div class="hide-box">
-                <input type="checkbox" id="hide-rarity" onchange="updateCard()">
+            
+            <div class="input-group">
+                <label>Series:</label>
+                <div class="input-row">
+                    <input type="text" id="input-series" value="Release Pack #1" oninput="updateCard()">
+                    <button class="btn-clear-field" onclick="clearField('input-series')" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-series" onchange="updateCard()"></div>
+                </div>
             </div>
         </div>
 
-        <div class="toggle-row">
-            <label for="input-foil" style="margin: 0; font-size: 14px;">Enable Foil / RNBW Version</label>
-            <input type="checkbox" id="input-foil" onchange="updateCard()">
+        <!-- PC Column 3 -->
+        <div class="control-col">
+            <div class="input-group">
+                <label>Creator Name:</label>
+                <div class="input-row">
+                    <input type="text" id="input-creator" value="LVLCREATOR" oninput="updateCard()">
+                    <button class="btn-clear-field" onclick="clearField('input-creator')" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-creator" onchange="updateCard()"></div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Rarity:</label>
+                <div class="input-row">
+                    <select id="input-rarity" onchange="updateCard()">
+                        <option value="common">Common</option>
+                        <option value="uncommon">Uncommon</option>
+                        <option value="rare">Rare</option>
+                        <option value="epic">Epic</option>
+                        <option value="legendary">Legendary</option>
+                        <option value="mythic" selected>Mythic</option>
+                        <option value="heavenly">Heavenly</option>
+                    </select>
+                    <button class="btn-clear-field" onclick="clearField('input-rarity')" title="Clear Field">X</button>
+                    <div class="hide-box"><input type="checkbox" id="hide-rarity" onchange="updateCard()"></div>
+                </div>
+            </div>
         </div>
 
-        <button id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
-        
-        <div class="action-row">
-            <button class="btn-import" onclick="openJsonModal()">JSON</button>
-            <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
+        <!-- PC Column 4 (Toggles) -->
+        <div class="control-col col-toggles">
+            <div class="toggle-item">
+                <label for="input-foil">RNBW:</label>
+                <input type="checkbox" id="input-foil" onchange="updateCard()">
+            </div>
+            <div class="toggle-item">
+                <label for="input-use-url">URL:</label>
+                <input type="checkbox" id="input-use-url" onchange="toggleInputMode()">
+            </div>
         </div>
 
-        <!-- Overflow Warning -->
-        <div id="overflow-warning">⚠️ Warning: Text exceeds card boundaries.</div>
+        <!-- PC Column 5 (Actions) -->
+        <div class="control-col col-actions">
+            <button class="btn-dl" id="dl-btn" onclick="downloadCard()">Download Card PNG</button>
+            <div class="action-row">
+                <button class="btn-import" onclick="openJsonModal()">JSON</button>
+                <button class="btn-clear" onclick="clearAllInputs()">Clear</button>
+            </div>
+            <div id="overflow-warning">⚠️ Warning: Text exceeds boundaries.</div>
+        </div>
+
     </div>
 
     <!-- JSON Import Modal -->
@@ -693,7 +776,6 @@
 
         // -------------------------------------------------------------
         // DYNAMIC PIXEL CENTERING ALGORITHM (2-AXIS)
-        // Corrects fonts with asymmetrical or inaccurate bounds 
         // -------------------------------------------------------------
         function pixelCenterElement(el, applyY = true, applyX = true) {
             if (!el || el.innerText.trim() === '' || window.getComputedStyle(el).display === 'none') return;
@@ -774,7 +856,6 @@
                 statusText.innerText = `Batch Processing: Rendering Card ${i + 1} of ${arr.length}...`;
                 applyJsonData(arr[i]);
                 
-                // Wait for DOM, fonts, Canvas offsets, and images to settle
                 await new Promise(r => setTimeout(r, 1200));
                 
                 try {
@@ -783,7 +864,6 @@
                     console.error(`Failed to export card ${i+1}`, e);
                 }
                 
-                // Allow browser download manager to register file payload before advancing
                 await new Promise(r => setTimeout(r, 800)); 
             }
             
@@ -801,7 +881,6 @@
             }
         }
 
-        // Modal Logic
         function openJsonModal() {
             const jsonInput = document.getElementById('json-input');
             jsonInput.value = '';
@@ -941,7 +1020,6 @@
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
 
-            // Apply 2-Axis Sub-Pixel Rendering Adjustments
             setTimeout(() => {
                 pixelCenterElement(document.getElementById('card-name'));
                 pixelCenterElement(document.getElementById('card-creator'));
@@ -953,7 +1031,6 @@
                 pixelCenterElement(document.getElementById('footer-foil-amp'));
                 pixelCenterElement(document.getElementById('footer-foil-rnbw'));
                 
-                // Overflow Detection
                 const wrapper = document.getElementById('desc-wrapper');
                 const warning = document.getElementById('overflow-warning');
                 if (wrapper.scrollHeight > wrapper.clientHeight + 2) {
@@ -998,6 +1075,9 @@
                 }
 
                 document.fonts.ready.then(() => {
+                    const originalTransform = wrapper.style.transform;
+                    const originalHeight = wrapper.style.height;
+
                     wrapper.style.transform = 'scale(1)';
                     wrapper.style.height = '1125px';
 
@@ -1009,8 +1089,8 @@
                             height: 1125   
                         })
                         .then(function (dataUrl) {
-                            wrapper.style.transform = 'scale(0.42)';
-                            wrapper.style.height = '480px';
+                            wrapper.style.transform = originalTransform;
+                            wrapper.style.height = originalHeight;
 
                             const link = document.createElement('a');
                             link.download = originalName + '.png';
@@ -1024,8 +1104,8 @@
                             resolve(); 
                         })
                         .catch(function (error) {
-                            wrapper.style.transform = 'scale(0.42)';
-                            wrapper.style.height = '480px';
+                            wrapper.style.transform = originalTransform;
+                            wrapper.style.height = originalHeight;
                             alert("Export failed: " + error);
                             if(btn) {
                                 btn.innerText = "Download Card PNG";
