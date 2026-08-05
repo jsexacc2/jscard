@@ -351,7 +351,7 @@
             font-size: 24px;
             line-height: 1;
             margin: 0;
-            margin-top: -4px; /* Adjusted to increase spacing compared to previous version */
+            margin-top: -12px; /* Reduces visual gap to requested ~12px */
             white-space: nowrap;
             display: inline-block;
         }
@@ -382,7 +382,7 @@
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-bottom-left-radius: 12px;
             border-bottom-right-radius: 12px;
-            padding: 0 25px; /* Removed top/bottom padding to perfectly center 75px elements */
+            padding: 25px; 
             height: 407px; 
             display: flex;
             flex-direction: column;
@@ -406,9 +406,10 @@
             justify-content: center;
             align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            height: 75px;
+            height: 50px;
             width: 100%;
             box-sizing: border-box;
+            margin-bottom: 15px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -420,7 +421,6 @@
             text-align: center;
             text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.9);
             display: inline-block;
-            white-space: nowrap; /* Prevents text from breaking onto a second line during export */
         }
 
         .description-text {
@@ -442,7 +442,7 @@
             justify-content: space-between;
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            height: 75px;
+            height: 50px;
             color: #dddddd;
             text-transform: uppercase;
             letter-spacing: 1px;
