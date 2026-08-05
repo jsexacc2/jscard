@@ -403,7 +403,7 @@
             display: none !important;
         }
         .header.no-creator .card-title {
-            font-size: 78px !important; /* Scale up if no creator */
+            font-size: 78px !important; 
         }
 
         .card-title {
@@ -503,8 +503,11 @@
             margin: 0;
             text-align: center;
             font-style: italic;
-            width: 100%;
-            white-space: pre-wrap; 
+            
+            /* GHOST LINE FIX: width restricted to provide buffer against 2x scale reflowing */
+            width: 700px; 
+            line-height: 1.25; 
+            white-space: pre-line; 
             overflow-wrap: break-word;
         }
 
@@ -768,16 +771,18 @@
         // URL API RECONSTRUCTOR (Fixes the '#' fragmentation bug)
         // -------------------------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
-            // Browsers truncate window.location.search if a '#' is in the URL.
-            // We combine them back together to rescue valid JSON strings.
             const rawParamString = window.location.search + window.location.hash;
             
             if (rawParamString.includes('json=')) {
                 try {
-                    // Extract strictly the 'json=' payload
-                    let paramsArray = rawParamString.replace('?', '').split('&');
-                    let jsonRaw = paramsArray.find(p => p.startsWith('json=')).substring(5);
-                    let decodedJson = decodeURIComponent(jsonRaw);
+                    let jsonRaw = rawParamString.substring(rawParamString.indexOf('json=') + 5);
+                    let decodedJson = jsonRaw;
+                    
+                    try {
+                        decodedJson = decodeURIComponent(jsonRaw);
+                    } catch (e) {
+                        console.warn("JSON was not URI encoded, falling back to raw parse.");
+                    }
                     
                     const data = JSON.parse(decodedJson);
                     
@@ -797,7 +802,7 @@
                     }
                 } catch (e) {
                     console.error("Failed to parse automated URL JSON:", e);
-                    alert("API Error: The JSON provided in the URL is malformed or invalid.\n\nEnsure that you are wrapping your JSON payload in encodeURIComponent() before attaching it to the URL.");
+                    alert("API Error: The JSON provided in the URL is malformed or invalid.");
                 }
             }
         });
@@ -890,18 +895,17 @@
                 statusText.innerText = `Batch Processing: Rendering Card ${i + 1} of ${arr.length}...`;
                 applyJsonData(arr[i]);
                 
-                await new Promise(r => setTimeout(r, 800)); // Wait for DOM bounds & Images
+                await new Promise(r => setTimeout(r, 800)); 
                 
                 try {
                     const result = await generateCardDataUrl(arr[i]["LvL-NM"] || `card_${i+1}`);
                     
                     if (batchMode === 'zip') {
-                        // Extract base64 payload by stripping "data:image/png;base64," header
                         const base64Data = result.url.split(',')[1];
                         zip.file(result.filename, base64Data, {base64: true});
                     } else {
                         triggerFileDownload(result.url, result.filename);
-                        await new Promise(r => setTimeout(r, 600)); // Wait for browser Save As hook
+                        await new Promise(r => setTimeout(r, 600)); 
                     }
                 } catch (e) {
                     console.error(`Failed to export card ${i+1}`, e);
@@ -913,7 +917,6 @@
                 const zipBlob = await zip.generateAsync({type: "blob"});
                 const zipUrl = URL.createObjectURL(zipBlob);
                 triggerFileDownload(zipUrl, "Batch_Export.zip");
-                // Cleanup URL memory after a few seconds
                 setTimeout(() => URL.revokeObjectURL(zipUrl), 10000);
             }
 
@@ -1029,7 +1032,6 @@
             const titleEl = document.getElementById('card-name');
             const creatorEl = document.getElementById('card-creator');
 
-            // Reset fonts prior to width detection
             titleEl.style.fontSize = hideCreator ? '78px' : '60px';
             titleEl.style.transform = 'translate(0, 0)';
             creatorEl.style.fontSize = '24px';
@@ -1071,8 +1073,8 @@
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
 
-            // Measure & Auto-Scale Overflowing Fonts
-            const maxTextWidth = 760; 
+            // #05 Auto-Scaling Logic
+            const maxTextWidth = 750; 
             
             if (titleEl.offsetWidth > maxTextWidth) {
                 const targetSize = hideCreator ? 78 : 60;
@@ -1125,7 +1127,6 @@
             toggleInputMode(); 
         }
 
-        // Handles the UI button click
         function triggerDownload() {
             const btn = document.getElementById('dl-btn');
             btn.innerText = "Rendering...";
@@ -1143,7 +1144,6 @@
             });
         }
 
-        // Converts URL to file download
         function triggerFileDownload(url, filename) {
             const link = document.createElement('a');
             link.download = filename;
@@ -1153,7 +1153,6 @@
             document.body.removeChild(link);
         }
 
-        // Generates the actual Data URL (PNG, JPEG, WEBP)
         function generateCardDataUrl(baseFilename) {
             return new Promise((resolve, reject) => {
                 const cardElement = document.getElementById('trading-card');
@@ -1178,7 +1177,6 @@
                             } else if (format === 'jpeg') {
                                 dataUrl = await htmlToImage.toJpeg(cardElement, { quality: 0.95, pixelRatio: 2, width: 825, height: 1125, backgroundColor: '#000000' });
                             } else if (format === 'webp') {
-                                // WEBP requires converting through a canvas buffer
                                 const canvas = await htmlToImage.toCanvas(cardElement, { pixelRatio: 2, width: 825, height: 1125, backgroundColor: '#000000' });
                                 dataUrl = canvas.toDataURL('image/webp', 1.0);
                             }
