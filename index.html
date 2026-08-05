@@ -503,8 +503,6 @@
             margin: 0;
             text-align: center;
             font-style: italic;
-            
-            /* GHOST LINE FIX: width restricted to provide buffer against 2x scale reflowing */
             width: 700px; 
             line-height: 1.25; 
             white-space: pre-line; 
@@ -774,36 +772,42 @@
             const rawParamString = window.location.search + window.location.hash;
             
             if (rawParamString.includes('json=')) {
-                try {
-                    let jsonRaw = rawParamString.substring(rawParamString.indexOf('json=') + 5);
-                    let decodedJson = jsonRaw;
-                    
+                
+                // RACE CONDITION FIX: Wait for ALL fonts (specifically Pusab) to finish 
+                // loading before we allow the URL API to start doing any layout math.
+                document.fonts.ready.then(() => { 
                     try {
-                        decodedJson = decodeURIComponent(jsonRaw);
-                    } catch (e) {
-                        console.warn("JSON was not URI encoded, falling back to raw parse.");
-                    }
-                    
-                    const data = JSON.parse(decodedJson);
-                    
-                    if (Array.isArray(data)) {
-                        processBatch(data, true); 
-                    } else {
-                        document.getElementById('main-controls').style.display = 'none';
-                        document.body.style.justifyContent = 'center';
+                        let jsonRaw = rawParamString.substring(rawParamString.indexOf('json=') + 5);
+                        let decodedJson = jsonRaw;
+                        
+                        try {
+                            decodedJson = decodeURIComponent(jsonRaw);
+                        } catch (e) {
+                            console.warn("JSON was not URI encoded, falling back to raw parse.");
+                        }
+                        
+                        const data = JSON.parse(decodedJson);
+                        
+                        if (Array.isArray(data)) {
+                            processBatch(data, true); 
+                        } else {
+                            document.getElementById('main-controls').style.display = 'none';
+                            document.body.style.justifyContent = 'center';
 
-                        applyJsonData(data);
-                        setTimeout(() => {
-                            generateCardDataUrl(data["LvL-NM"] || 'card').then(result => {
-                                triggerFileDownload(result.url, result.filename);
-                                setTimeout(() => { window.close(); }, 2500); 
-                            }).catch(e => console.error(e));
-                        }, 1000); 
+                            applyJsonData(data);
+                            
+                            setTimeout(() => {
+                                generateCardDataUrl(data["LvL-NM"] || 'card').then(result => {
+                                    triggerFileDownload(result.url, result.filename);
+                                    setTimeout(() => { window.close(); }, 2500); 
+                                }).catch(e => console.error(e));
+                            }, 1000); 
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse automated URL JSON:", e);
+                        alert("API Error: The JSON provided in the URL is malformed or invalid.");
                     }
-                } catch (e) {
-                    console.error("Failed to parse automated URL JSON:", e);
-                    alert("API Error: The JSON provided in the URL is malformed or invalid.");
-                }
+                });
             }
         });
 
@@ -1073,7 +1077,6 @@
             document.querySelectorAll('.card-rarity').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
             document.querySelectorAll('.footer-right span:not(.card-rarity)').forEach(el => el.style.visibility = hideRarity ? 'hidden' : 'visible');
 
-            // #05 Auto-Scaling Logic
             const maxTextWidth = 750; 
             
             if (titleEl.offsetWidth > maxTextWidth) {
@@ -1086,22 +1089,26 @@
                 creatorEl.style.fontSize = Math.floor(24 * scale) + 'px';
             }
 
-            setTimeout(() => {
-                pixelCenterElement(document.getElementById('card-name'));
-                pixelCenterElement(document.getElementById('card-creator'));
-                pixelCenterElement(document.getElementById('card-series'));
-                pixelCenterElement(document.getElementById('footer-jolly'));
-                pixelCenterElement(document.getElementById('footer-rarity'));
-                pixelCenterElement(document.getElementById('footer-foil-jolly'));
-                pixelCenterElement(document.getElementById('footer-foil-rarity'));
-                pixelCenterElement(document.getElementById('footer-foil-amp'));
-                pixelCenterElement(document.getElementById('footer-foil-rnbw'));
-                
-                const wrapper = document.getElementById('desc-wrapper');
-                const warning = document.getElementById('overflow-warning');
-                if (wrapper.scrollHeight > wrapper.clientHeight + 2) warning.style.display = 'block';
-                else warning.style.display = 'none';
-            }, 10);
+            // RACE CONDITION FIX: Wrap the alignment calculations inside fonts.ready
+            // to ensure it never runs on a fallback font like Arial.
+            document.fonts.ready.then(() => {
+                setTimeout(() => {
+                    pixelCenterElement(document.getElementById('card-name'));
+                    pixelCenterElement(document.getElementById('card-creator'));
+                    pixelCenterElement(document.getElementById('card-series'));
+                    pixelCenterElement(document.getElementById('footer-jolly'));
+                    pixelCenterElement(document.getElementById('footer-rarity'));
+                    pixelCenterElement(document.getElementById('footer-foil-jolly'));
+                    pixelCenterElement(document.getElementById('footer-foil-rarity'));
+                    pixelCenterElement(document.getElementById('footer-foil-amp'));
+                    pixelCenterElement(document.getElementById('footer-foil-rnbw'));
+                    
+                    const wrapper = document.getElementById('desc-wrapper');
+                    const warning = document.getElementById('overflow-warning');
+                    if (wrapper.scrollHeight > wrapper.clientHeight + 2) warning.style.display = 'block';
+                    else warning.style.display = 'none';
+                }, 10);
+            });
         }
         
         function clearAllInputs() {
